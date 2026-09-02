@@ -12,6 +12,7 @@ export interface BuildDailyQueueInput {
   entries: readonly VocabularyEntry[];
   progress: readonly WordProgress[];
   today: string;
+  utcOffsetMinutes: number;
   goal: DailyGoal;
   newLearnedToday: number;
 }

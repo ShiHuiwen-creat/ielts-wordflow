@@ -39,7 +39,7 @@ describe('buildDailyQueue', () => {
   it('puts due reviews before unseen words and sorts reviews by due time', () => {
     const entries = [entry('unseen-1'), entry('due-later'), entry('due-earlier'), entry('unseen-2')];
     const reviewProgress = [
-      progress('due-later', '2026-09-02T20:00:00.000Z'),
+      progress('due-later', '2026-09-02T12:00:00.000Z'),
       progress('due-earlier', '2026-09-01T20:00:00.000Z'),
     ];
 
@@ -47,6 +47,7 @@ describe('buildDailyQueue', () => {
       entries,
       progress: reviewProgress,
       today: '2026-09-02',
+      utcOffsetMinutes: 480,
       goal: 10,
       newLearnedToday: 0,
     });
@@ -65,6 +66,7 @@ describe('buildDailyQueue', () => {
         entries: unseen(20),
         progress: [],
         today: '2026-09-02',
+        utcOffsetMinutes: 480,
         goal: 10,
         newLearnedToday: 8,
       }),
@@ -82,6 +84,7 @@ describe('buildDailyQueue', () => {
       entries,
       progress: reviewProgress,
       today: '2026-09-02',
+      utcOffsetMinutes: 480,
       goal: 10,
       newLearnedToday: 0,
     });
@@ -89,19 +92,40 @@ describe('buildDailyQueue', () => {
     expect(queue.map((item) => item.wordId)).toEqual(['due', 'new']);
   });
 
-  it('excludes progress that is not due by the end of the supplied local day', () => {
+  it('uses the supplied UTC offset to include reviews due by the local-day boundary', () => {
     const queue = buildDailyQueue({
-      entries: [entry('due-at-day-end'), entry('tomorrow')],
+      entries: [entry('after-midnight'), entry('due-at-day-end'), entry('tomorrow')],
       progress: [
-        progress('due-at-day-end', '2026-09-02T23:59:59.999Z'),
-        progress('tomorrow', '2026-09-03T00:00:00.000Z'),
+        progress('after-midnight', '2026-09-02T16:30:00.000Z'),
+        progress('due-at-day-end', '2026-09-03T15:59:59.999Z'),
+        progress('tomorrow', '2026-09-03T16:00:00.000Z'),
       ],
-      today: '2026-09-02',
+      today: '2026-09-03',
+      utcOffsetMinutes: 480,
       goal: 10,
       newLearnedToday: 0,
     });
 
-    expect(queue).toEqual([{ wordId: 'due-at-day-end', kind: 'review' }]);
+    expect(queue).toEqual([
+      { wordId: 'after-midnight', kind: 'review' },
+      { wordId: 'due-at-day-end', kind: 'review' },
+    ]);
+  });
+
+  it('breaks same-time review ties with a locale-independent lexical word ID order', () => {
+    const queue = buildDailyQueue({
+      entries: [entry('a'), entry('B')],
+      progress: [
+        progress('a', '2026-09-02T12:00:00.000Z'),
+        progress('B', '2026-09-02T12:00:00.000Z'),
+      ],
+      today: '2026-09-02',
+      utcOffsetMinutes: 480,
+      goal: 10,
+      newLearnedToday: 0,
+    });
+
+    expect(queue.map((item) => item.wordId)).toEqual(['B', 'a']);
   });
 
   it('returns an empty queue when no review is due and the new-word goal is exhausted', () => {
@@ -110,6 +134,7 @@ describe('buildDailyQueue', () => {
         entries: unseen(2),
         progress: [],
         today: '2026-09-02',
+        utcOffsetMinutes: 480,
         goal: 10,
         newLearnedToday: 10,
       }),
@@ -126,6 +151,7 @@ describe('buildDailyQueue', () => {
       entries,
       progress: reviewProgress,
       today: '2026-09-02',
+      utcOffsetMinutes: 480,
       goal: 20,
       newLearnedToday: 0,
     });

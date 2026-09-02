@@ -1,8 +1,10 @@
 import type { WordProgress } from '../scheduler/types';
 import type { BuildDailyQueueInput, StudyQueueItem } from './types';
 
-function endOfLocalDay(today: string): number {
-  return new Date(`${today}T23:59:59.999Z`).getTime();
+function endOfLocalDay(today: string, utcOffsetMinutes: number): number {
+  const localDayStart = new Date(`${today}T00:00:00.000Z`).getTime() - utcOffsetMinutes * 60_000;
+
+  return localDayStart + 24 * 60 * 60 * 1_000 - 1;
 }
 
 function dueTime(progress: WordProgress): number {
@@ -13,6 +15,7 @@ export function buildDailyQueue({
   entries,
   progress,
   today,
+  utcOffsetMinutes,
   goal,
   newLearnedToday,
 }: BuildDailyQueueInput): StudyQueueItem[] {
@@ -34,10 +37,17 @@ export function buildDailyQueue({
     }
   }
 
-  const dayEnd = endOfLocalDay(today);
+  const dayEnd = endOfLocalDay(today, utcOffsetMinutes);
   const dueReviews = [...progressByWordId.values()]
     .filter((wordProgress) => entryIdSet.has(wordProgress.wordId) && dueTime(wordProgress) <= dayEnd)
-    .sort((left, right) => dueTime(left) - dueTime(right) || left.wordId.localeCompare(right.wordId))
+    .sort((left, right) => {
+      const dueDifference = dueTime(left) - dueTime(right);
+      if (dueDifference !== 0) {
+        return dueDifference;
+      }
+
+      return left.wordId < right.wordId ? -1 : left.wordId > right.wordId ? 1 : 0;
+    })
     .map(({ wordId }) => ({ wordId, kind: 'review' as const }));
   const remainingNewWords = Math.max(0, goal - newLearnedToday);
   const newWords = uniqueEntries
