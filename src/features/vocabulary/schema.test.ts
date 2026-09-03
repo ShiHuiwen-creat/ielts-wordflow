@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isVocabularyEntry, validateVocabulary } from './schema';
+import { isVocabularyEntry, isVocabularyId, validateVocabulary } from './schema';
 
 const valid = {
   id: 'allocate',
@@ -14,6 +14,16 @@ const valid = {
 };
 
 describe('vocabulary schema', () => {
+  it('accepts non-empty trimmed IDs without imposing a slug format', () => {
+    expect(isVocabularyId('Academic_Word')).toBe(true);
+    expect(isVocabularyId('IELTS7')).toBe(true);
+  });
+
+  it('rejects empty and whitespace-only IDs', () => {
+    expect(isVocabularyId('')).toBe(false);
+    expect(isVocabularyId('   ')).toBe(false);
+  });
+
   it('accepts a complete IELTS entry', () => {
     expect(isVocabularyEntry(valid)).toBe(true);
   });
@@ -33,6 +43,11 @@ describe('vocabulary schema', () => {
 
   it('allows meaningful text with surrounding whitespace', () => {
     expect(isVocabularyEntry({ ...valid, word: ' allocate ' })).toBe(true);
+  });
+
+  it('uses the shared vocabulary ID contract for entries', () => {
+    expect(isVocabularyEntry({ ...valid, id: 'Academic_Word' })).toBe(true);
+    expect(isVocabularyEntry({ ...valid, id: ' allocate ' })).toBe(true);
   });
 
   it.each([

@@ -14,6 +14,10 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+export function isVocabularyId(value: unknown): value is VocabularyEntry['id'] {
+  return isNonEmptyString(value);
+}
+
 export function isVocabularyEntry(value: unknown): value is VocabularyEntry {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return false;
@@ -21,7 +25,10 @@ export function isVocabularyEntry(value: unknown): value is VocabularyEntry {
 
   const candidate = value as Record<string, unknown>;
   return (
-    requiredStringFields.every((field) => isNonEmptyString(candidate[field])) &&
+    isVocabularyId(candidate.id) &&
+    requiredStringFields
+      .filter((field) => field !== 'id')
+      .every((field) => isNonEmptyString(candidate[field])) &&
     Array.isArray(candidate.tags) &&
     candidate.tags.length > 0 &&
     candidate.tags.every(isNonEmptyString) &&

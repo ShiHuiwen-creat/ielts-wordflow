@@ -1,4 +1,5 @@
 import type { ReviewRating, WordProgress } from '../../features/scheduler/types';
+import { isVocabularyId } from '../../features/vocabulary/schema';
 import type {
   AppSettings,
   BackupData,
@@ -8,10 +9,23 @@ import type {
 
 const supportedRatings = new Set<ReviewRating>(['again', 'hard', 'known']);
 const supportedGoals = new Set([10, 20, 30]);
-const wordIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-const dateTimePattern =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+const canonicalUtcDateTimePattern =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+const backupKeys = ['schemaVersion', 'exportedAt', 'settings', 'progress', 'dailyStats'];
+const settingsKeys = ['dailyGoal', 'autoSpeak', 'onboardingComplete'];
+const progressKeys = [
+  'wordId',
+  'firstLearnedAt',
+  'lastReviewedAt',
+  'dueAt',
+  'stage',
+  'consecutiveKnown',
+  'reviewCount',
+  'lastRating',
+  'mastered',
+];
+const dailyStatsKeys = ['date', 'newLearned', 'reviews', 'again', 'hard', 'known'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -22,10 +36,22 @@ function isNonNegativeInteger(value: unknown): value is number {
 }
 
 function isIsoDateTime(value: unknown): value is string {
+  if (typeof value !== 'string' || !canonicalUtcDateTimePattern.test(value)) {
+    return false;
+  }
+
+  try {
+    return new Date(value).toISOString() === value;
+  } catch {
+    return false;
+  }
+}
+
+function hasExactKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
+  const actualKeys = Object.keys(value);
   return (
-    typeof value === 'string' &&
-    dateTimePattern.test(value) &&
-    Number.isFinite(Date.parse(value))
+    actualKeys.length === expectedKeys.length &&
+    expectedKeys.every((key) => Object.hasOwn(value, key))
   );
 }
 
@@ -38,7 +64,7 @@ function isDateKey(value: unknown): value is string {
 }
 
 function isSettings(value: unknown): value is AppSettings {
-  if (!isRecord(value)) {
+  if (!isRecord(value) || !hasExactKeys(value, settingsKeys)) {
     return false;
   }
 
@@ -51,18 +77,16 @@ function isSettings(value: unknown): value is AppSettings {
 }
 
 function isProgress(value: unknown): value is WordProgress {
-  if (!isRecord(value)) {
+  if (!isRecord(value) || !hasExactKeys(value, progressKeys)) {
     return false;
   }
 
   return (
-    typeof value.wordId === 'string' &&
-    wordIdPattern.test(value.wordId) &&
+    isVocabularyId(value.wordId) &&
     isIsoDateTime(value.firstLearnedAt) &&
     isIsoDateTime(value.lastReviewedAt) &&
     isIsoDateTime(value.dueAt) &&
     isNonNegativeInteger(value.stage) &&
-    value.stage <= 6 &&
     isNonNegativeInteger(value.consecutiveKnown) &&
     isNonNegativeInteger(value.reviewCount) &&
     typeof value.lastRating === 'string' &&
@@ -72,7 +96,7 @@ function isProgress(value: unknown): value is WordProgress {
 }
 
 function isDailyStats(value: unknown): value is DailyStats {
-  if (!isRecord(value)) {
+  if (!isRecord(value) || !hasExactKeys(value, dailyStatsKeys)) {
     return false;
   }
 
@@ -97,6 +121,7 @@ export function validateBackup(value: unknown): BackupData {
 
   if (
     !isRecord(value) ||
+    !hasExactKeys(value, backupKeys) ||
     value.schemaVersion !== 1 ||
     !isIsoDateTime(value.exportedAt) ||
     !isSettings(value.settings) ||

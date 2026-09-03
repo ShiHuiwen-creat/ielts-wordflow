@@ -92,6 +92,90 @@ describe('storage backup', () => {
     ).toThrow('备份数据无效');
   });
 
+  it.each(['exportedAt', 'firstLearnedAt', 'lastReviewedAt', 'dueAt'] as const)(
+    'rejects a normalized nonexistent calendar date in %s',
+    (field) => {
+      const invalidTimestamp = '2026-02-30T08:00:00.000Z';
+      const backup = {
+        schemaVersion: 1,
+        exportedAt: field === 'exportedAt' ? invalidTimestamp : '2026-09-03T08:00:00.000Z',
+        settings: { dailyGoal: 20, autoSpeak: false, onboardingComplete: false },
+        progress: [
+          progress(field === 'exportedAt' ? {} : { [field]: invalidTimestamp }),
+        ],
+        dailyStats: [],
+      };
+
+      expect(() => validateBackup(backup)).toThrow('备份数据无效');
+    },
+  );
+
+  it('round-trips app progress above stage 6 and non-slug vocabulary IDs', async () => {
+    const source = createRepository(databaseName('domain-values-source'));
+    const destination = createRepository(databaseName('domain-values-destination'));
+    const domainProgress = progress({ wordId: 'Academic_Word', stage: 7 });
+    await source.saveReview(domainProgress, '2026-09-02');
+
+    await restoreBackup(destination, await createBackup(source));
+
+    await expect(destination.getProgress('Academic_Word')).resolves.toEqual(domainProgress);
+    source.close();
+    destination.close();
+  });
+
+  it.each(['', '   '])('rejects invalid vocabulary ID %j', (wordId) => {
+    expect(() =>
+      validateBackup({
+        schemaVersion: 1,
+        exportedAt: '2026-09-03T08:00:00.000Z',
+        settings: { dailyGoal: 20, autoSpeak: false, onboardingComplete: false },
+        progress: [progress({ wordId })],
+        dailyStats: [],
+      }),
+    ).toThrow('备份数据无效');
+  });
+
+  it.each(['top-level', 'settings', 'progress', 'dailyStats'] as const)(
+    'rejects unexpected keys in %s before changing stored data',
+    async (location) => {
+      const repository = createRepository(databaseName(`unexpected-${location}`));
+      await repository.saveReview(progress(), '2026-09-02');
+      const before = await createBackup(repository);
+      const replacement = {
+        schemaVersion: 1,
+        exportedAt: '2026-09-03T08:00:00.000Z',
+        settings: { dailyGoal: 10, autoSpeak: true, onboardingComplete: true },
+        progress: [progress({ wordId: 'replacement', stage: 2 })],
+        dailyStats: [
+          { date: '2026-09-03', newLearned: 1, reviews: 0, again: 0, hard: 0, known: 1 },
+        ],
+      };
+      const unexpected =
+        location === 'top-level'
+          ? { ...replacement, extra: true }
+          : location === 'settings'
+            ? { ...replacement, settings: { ...replacement.settings, extra: true } }
+            : location === 'progress'
+              ? {
+                  ...replacement,
+                  progress: [{ ...replacement.progress[0], extra: true }],
+                }
+              : {
+                  ...replacement,
+                  dailyStats: [{ ...replacement.dailyStats[0], extra: true }],
+                };
+
+      await expect(restoreBackup(repository, unexpected)).rejects.toThrow('备份数据无效');
+      const after = await createBackup(repository);
+      expect(after).toMatchObject({
+        settings: before.settings,
+        progress: before.progress,
+        dailyStats: before.dailyStats,
+      });
+      repository.close();
+    },
+  );
+
   it('round-trips settings, progress and daily stats', async () => {
     const populatedRepository = createRepository(databaseName('source'));
     const emptyRepository = createRepository(databaseName('destination'));
