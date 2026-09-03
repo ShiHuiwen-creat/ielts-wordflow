@@ -1,5 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { App } from './app/App';
+import { createRepository } from './lib/storage/repository';
+import './styles/global.css';
+import './styles/layout.css';
 
 const root = document.getElementById('root');
 
@@ -9,6 +14,8 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <h1>IELTS WordFlow</h1>
+    <BrowserRouter>
+      <App repository={createRepository('ielts-wordflow')} vocabulary={[]} />
+    </BrowserRouter>
   </StrictMode>,
 );

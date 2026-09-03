@@ -1,0 +1,119 @@
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(217, 155, 82, 0.1), transparent 28rem),
+    var(--color-paper);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a,
+input,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+h1,
+h2,
+p {
+  margin-block-start: 0;
+}
+
+h1,
+h2 {
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+h1 {
+  margin-block-end: 0.75rem;
+  font-size: clamp(2rem, 8vw, 3.25rem);
+}
+
+h2 {
+  font-size: clamp(1.35rem, 5vw, 1.8rem);
+}
+
+a {
+  color: inherit;
+}
+
+.button {
+  display: inline-flex;
+  min-height: var(--control-min);
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  border-radius: var(--radius-small);
+  padding: 0.72rem 1.1rem;
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button--primary {
+  border-color: var(--color-forest);
+  background: var(--color-forest);
+  color: #fff;
+  box-shadow: 0 4px 0 var(--color-forest-dark);
+}
+
+.button--primary:hover {
+  background: var(--color-forest-dark);
+}
+
+.button--primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--color-forest-dark);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.button--wide {
+  width: 100%;
+}
+
+.card {
+  border: 2px solid var(--color-forest);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.eyebrow {
+  margin-block-end: 0.4rem;
+  color: var(--color-forest);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}

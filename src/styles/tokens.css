@@ -1,0 +1,18 @@
+:root {
+  color-scheme: light;
+  --color-paper: #f5f0e6;
+  --color-paper-deep: #e9dfce;
+  --color-surface: #fffdf8;
+  --color-ink: #17211d;
+  --color-muted: #5b665f;
+  --color-forest: #174c3c;
+  --color-forest-dark: #0d372b;
+  --color-accent: #d99b52;
+  --color-error: #9d2f2f;
+  --color-line: #bdc5bd;
+  --shadow-card: 0 5px 0 rgba(23, 76, 60, 0.14);
+  --radius-small: 10px;
+  --radius-medium: 18px;
+  --content-max: 720px;
+  --control-min: 44px;
+}
