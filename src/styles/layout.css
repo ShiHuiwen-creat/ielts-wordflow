@@ -187,6 +187,219 @@
   color: var(--color-muted);
 }
 
+.study-page {
+  width: min(100%, 42rem);
+  margin-inline: auto;
+}
+
+.study-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.study-progress .eyebrow {
+  margin: 0;
+}
+
+.study-progress strong {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.word-card {
+  display: grid;
+  gap: 1.5rem;
+  min-height: 24rem;
+  padding: clamp(1.4rem, 6vw, 2.5rem);
+}
+
+.word-card__prompt {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-height: 10rem;
+  text-align: center;
+}
+
+.word-card__prompt h1 {
+  margin-bottom: 0.9rem;
+  overflow-wrap: anywhere;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.speech-button {
+  display: inline-flex;
+  min-height: var(--control-min);
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--color-forest);
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  background: var(--color-paper-deep);
+  color: var(--color-forest-dark);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.speech-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.speech-hint {
+  max-width: 19rem;
+  margin: 0.65rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+.word-answer {
+  display: grid;
+  gap: 1rem;
+  border-top: 1px solid var(--color-line);
+  padding-top: 1.25rem;
+}
+
+.word-answer__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  color: var(--color-muted);
+}
+
+.word-answer__meta span:last-child {
+  border-radius: 999px;
+  padding: 0.08rem 0.55rem;
+  background: var(--color-paper-deep);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.word-answer__definition {
+  margin: 0;
+  color: var(--color-forest-dark);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.word-answer__example {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1rem;
+}
+
+.word-answer__example p {
+  margin-bottom: 0.45rem;
+}
+
+.word-answer__example p:last-child {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.rating-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.rating-section h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.rating-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.rating-button {
+  display: grid;
+  min-height: 4.5rem;
+  place-content: center;
+  gap: 0.1rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius-small);
+  padding: 0.6rem 0.35rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.rating-button:hover {
+  border-color: var(--color-forest);
+}
+
+.rating-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.rating-button span {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.study-error,
+.save-status {
+  margin: 0;
+  border-radius: var(--radius-small);
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+}
+
+.study-error {
+  border: 1px solid var(--color-error);
+  background: rgba(157, 47, 47, 0.08);
+  color: var(--color-error);
+}
+
+.save-status {
+  background: var(--color-paper-deep);
+  color: var(--color-muted);
+}
+
+.session-summary {
+  display: grid;
+  width: min(100%, 42rem);
+  margin-inline: auto;
+  padding: clamp(1.5rem, 6vw, 2.5rem);
+}
+
+.session-summary > p:not(.eyebrow) {
+  color: var(--color-muted);
+}
+
+.summary-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.summary-counts div {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+  padding: 0.8rem;
+  text-align: center;
+}
+
+.summary-counts dt {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.summary-counts dd {
+  margin: 0;
+  color: var(--color-forest);
+  font-family: Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
 .error-state .button {
   margin-top: 1.25rem;
 }
@@ -346,6 +559,14 @@
 
   .goal-option {
     min-height: var(--control-min);
+  }
+
+  .rating-controls {
+    gap: 0.45rem;
+  }
+
+  .rating-button span {
+    font-size: 0.68rem;
   }
 }
 

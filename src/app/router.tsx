@@ -1,8 +1,11 @@
+import { useContext } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { OnboardingPage } from '../pages/OnboardingPage';
 import { StorageBlockedPage } from '../pages/StorageBlockedPage';
+import { StudyPage } from '../pages/StudyPage';
 import { TodayPage } from '../pages/TodayPage';
+import { AppContext } from './appContext';
 import { useDashboard } from './useDashboard';
 
 function PlaceholderPage({ title, description }: { title: string; description: string }) {
@@ -19,7 +22,12 @@ function PlaceholderPage({ title, description }: { title: string; description: s
 }
 
 export function AppRouter() {
+  const dependencies = useContext(AppContext);
   const { state, applySettings } = useDashboard();
+
+  if (dependencies === undefined) {
+    throw new Error('AppRouter must be used within AppProviders.');
+  }
 
   if (state.status === 'loading') {
     return (
@@ -47,7 +55,19 @@ export function AppRouter() {
     <AppShell>
       <Routes>
         <Route path="/" element={<TodayPage dashboard={state.dashboard} />} />
-        <Route path="/study" element={<PlaceholderPage title="学习" description="学习流程即将开放。" />} />
+        <Route
+          path="/study"
+          element={(
+            <StudyPage
+              queue={state.dashboard.queue}
+              vocabulary={dependencies.vocabulary}
+              repository={dependencies.repository}
+              reviewDate={state.dashboard.today}
+              autoSpeak={state.dashboard.settings.autoSpeak}
+              now={dependencies.now}
+            />
+          )}
+        />
         <Route path="/vocabulary" element={<PlaceholderPage title="词库" description="词库浏览即将开放。" />} />
         <Route path="/stats" element={<PlaceholderPage title="统计" description="学习统计即将开放。" />} />
         <Route path="/settings" element={<PlaceholderPage title="设置" description="设置与数据工具即将开放。" />} />
