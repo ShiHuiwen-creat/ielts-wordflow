@@ -13,7 +13,7 @@ export interface StudyService {
 interface CreateStudyServiceInput {
   repository: StorageRepository;
   initialSession: StudySessionState;
-  reviewDate?: string;
+  reviewDate: string;
 }
 
 export function createStudyService({
@@ -42,7 +42,7 @@ export function createStudyService({
       const progress = await repository.getProgress(current.wordId);
       const scheduled = scheduleReview(progress, rating, reviewedAt, current.wordId);
 
-      await repository.saveReview(scheduled, reviewDate ?? reviewedAt.toISOString().slice(0, 10));
+      await repository.saveReview(scheduled, reviewDate);
       state = sessionReducer(state, { type: 'rated', rating });
 
       return state;

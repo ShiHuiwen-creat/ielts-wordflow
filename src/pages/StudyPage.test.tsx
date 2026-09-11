@@ -2,8 +2,9 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from '../app/App';
+import type { WordProgress } from '../features/scheduler/types';
 import type { VocabularyEntry } from '../features/vocabulary/types';
-import type { AppSettings, StorageRepository } from '../lib/storage/types';
+import type { AppSettings, DailyStats, StorageRepository } from '../lib/storage/types';
 
 const NOW = new Date('2026-09-02T23:30:00.000Z');
 const SETTINGS: AppSettings = {
@@ -38,6 +39,37 @@ function repository(): StorageRepository {
     replaceAll: vi.fn().mockResolvedValue(undefined),
     close: vi.fn(),
   };
+}
+
+function persistentRepository(): StorageRepository {
+  const progressByWord = new Map<string, WordProgress>();
+  const dailyStatsByDate = new Map<string, DailyStats>();
+  const storage = repository();
+
+  vi.mocked(storage.getProgress).mockImplementation(async (wordId) => progressByWord.get(wordId));
+  vi.mocked(storage.getAllProgress).mockImplementation(async () => [...progressByWord.values()]);
+  vi.mocked(storage.getAllDailyStats).mockImplementation(async () => [...dailyStatsByDate.values()]);
+  vi.mocked(storage.saveReview).mockImplementation(async (progress, date = progress.lastReviewedAt.slice(0, 10)) => {
+    const wasLearned = progressByWord.has(progress.wordId);
+    const current = dailyStatsByDate.get(date) ?? {
+      date,
+      newLearned: 0,
+      reviews: 0,
+      again: 0,
+      hard: 0,
+      known: 0,
+    };
+
+    progressByWord.set(progress.wordId, progress);
+    dailyStatsByDate.set(date, {
+      ...current,
+      newLearned: current.newLearned + (wasLearned ? 0 : 1),
+      reviews: current.reviews + (wasLearned ? 1 : 0),
+      [progress.lastRating]: current[progress.lastRating] + 1,
+    });
+  });
+
+  return storage;
 }
 
 function renderStudy(storage: StorageRepository, entries = [entry('allocate'), entry('coherent')]) {
@@ -105,9 +137,9 @@ describe('StudyPage', () => {
     expect(await screen.findByRole('heading', { name: 'coherent' })).toBeVisible();
   });
 
-  it('shows a recoverable Chinese error and retains the exact revealed card after failure', async () => {
+  it('retries a failed write, then persists and advances the retained card exactly once', async () => {
     const storage = repository();
-    vi.mocked(storage.saveReview).mockRejectedValue(new Error('quota exceeded'));
+    vi.mocked(storage.saveReview).mockRejectedValueOnce(new Error('quota exceeded'));
     renderStudy(storage);
     await screen.findByRole('heading', { name: 'allocate' });
     fireEvent.click(screen.getByRole('button', { name: '查看答案' }));
@@ -119,6 +151,13 @@ describe('StudyPage', () => {
     expect(screen.getByText('allocate 的中文释义')).toBeVisible();
     expect(screen.queryByRole('heading', { name: 'coherent' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '认识' })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('button', { name: '认识' }));
+
+    expect(await screen.findByRole('heading', { name: 'coherent' })).toBeVisible();
+    expect(screen.getByText('剩余 1 个词')).toBeVisible();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(storage.saveReview).toHaveBeenCalledTimes(2);
   });
 
   it('shows all three exact feedback counts in the final session summary', async () => {
@@ -145,5 +184,45 @@ describe('StudyPage', () => {
     await revealAndRate('认识');
 
     expect(storage.saveReview).toHaveBeenCalledWith(expect.any(Object), '2026-09-03');
+  });
+
+  it('refreshes Today counts after a successful rating without a page reload', async () => {
+    const storage = persistentRepository();
+    renderStudy(storage, [entry('allocate')]);
+    await screen.findByRole('heading', { name: 'allocate' });
+
+    await revealAndRate('认识');
+    fireEvent.click(screen.getByRole('link', { name: '返回今日页' }));
+
+    expect(await screen.findByRole('heading', { name: '今日学习' })).toBeVisible();
+    expect(await screen.findByText('今日已学习 1')).toBeVisible();
+    expect(screen.getByRole('heading', { name: '今天的任务完成啦' })).toBeVisible();
+  });
+
+  it('does not offer a completed word when re-entering Study without a page reload', async () => {
+    const storage = persistentRepository();
+    renderStudy(storage, [entry('allocate')]);
+    await screen.findByRole('heading', { name: 'allocate' });
+
+    await revealAndRate('认识');
+    fireEvent.click(screen.getByRole('link', { name: '返回今日页' }));
+    await screen.findByRole('heading', { name: '今日学习' });
+    fireEvent.click(screen.getByRole('link', { name: '学习' }));
+
+    expect(await screen.findByRole('heading', { name: '本轮学习完成' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: 'allocate' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the active relearning queue when refreshed dashboard props change', async () => {
+    const storage = persistentRepository();
+    renderStudy(storage, [entry('allocate'), entry('coherent')]);
+    await screen.findByRole('heading', { name: 'allocate' });
+
+    await revealAndRate('不认识');
+    expect(await screen.findByRole('heading', { name: 'coherent' })).toBeVisible();
+    await waitFor(() => expect(storage.getAllProgress).toHaveBeenCalledTimes(2));
+    await revealAndRate('认识');
+
+    expect(await screen.findByRole('heading', { name: 'allocate' })).toBeVisible();
   });
 });

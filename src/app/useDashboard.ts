@@ -31,6 +31,7 @@ function localDateKey(now: Date, utcOffsetMinutes: number): string {
 export function useDashboard() {
   const dependencies = useContext(AppContext);
   const [state, setState] = useState<DashboardState>({ status: 'loading' });
+  const [refreshToken, setRefreshToken] = useState(0);
 
   if (dependencies === undefined) {
     throw new Error('useDashboard must be used within AppProviders.');
@@ -86,7 +87,11 @@ export function useDashboard() {
     return () => {
       active = false;
     };
-  }, [now, repository, utcOffsetMinutes, vocabulary]);
+  }, [now, refreshToken, repository, utcOffsetMinutes, vocabulary]);
+
+  const refreshDashboard = useCallback(() => {
+    setRefreshToken((current) => current + 1);
+  }, []);
 
   const applySettings = useCallback((settings: AppSettings) => {
     setState((current) => {
@@ -116,5 +121,5 @@ export function useDashboard() {
     });
   }, [vocabulary]);
 
-  return { state, applySettings };
+  return { state, applySettings, refreshDashboard };
 }

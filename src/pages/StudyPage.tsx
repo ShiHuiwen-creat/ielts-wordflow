@@ -17,6 +17,7 @@ interface StudyPageProps {
   reviewDate: string;
   autoSpeak: boolean;
   now: () => Date;
+  onReviewSaved: () => void;
 }
 
 function startSession(queue: readonly StudyQueueItem[]): StudySessionState {
@@ -37,6 +38,7 @@ export function StudyPage({
   reviewDate,
   autoSpeak,
   now,
+  onReviewSaved,
 }: StudyPageProps) {
   const [service] = useState(() => createStudyService({
     repository,
@@ -91,6 +93,7 @@ export function StudyPage({
     try {
       const nextSession = await service.rateCurrent(rating, now());
       setSession(nextSession);
+      onReviewSaved();
     } catch {
       setError('保存失败，请重试。当前单词尚未提交。');
     } finally {

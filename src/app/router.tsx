@@ -23,7 +23,7 @@ function PlaceholderPage({ title, description }: { title: string; description: s
 
 export function AppRouter() {
   const dependencies = useContext(AppContext);
-  const { state, applySettings } = useDashboard();
+  const { state, applySettings, refreshDashboard } = useDashboard();
 
   if (dependencies === undefined) {
     throw new Error('AppRouter must be used within AppProviders.');
@@ -65,6 +65,7 @@ export function AppRouter() {
               reviewDate={state.dashboard.today}
               autoSpeak={state.dashboard.settings.autoSpeak}
               now={dependencies.now}
+              onReviewSaved={refreshDashboard}
             />
           )}
         />
