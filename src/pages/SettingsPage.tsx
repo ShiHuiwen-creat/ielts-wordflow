@@ -31,6 +31,7 @@ export function SettingsPage({
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [busyAction, setBusyAction] = useState<'settings' | 'export' | 'import' | 'reset' | null>(null);
   const [error, setError] = useState('');
+  const [dialogError, setDialogError] = useState('');
   const [status, setStatus] = useState('');
 
   async function persistSettings(nextSettings: AppSettings) {
@@ -38,6 +39,7 @@ export function SettingsPage({
     setLocalSettings(nextSettings);
     setBusyAction('settings');
     setError('');
+    setDialogError('');
     setStatus('');
     try {
       await repository.saveSettings(nextSettings);
@@ -103,6 +105,7 @@ export function SettingsPage({
 
     setBusyAction('import');
     setError('');
+    setDialogError('');
     try {
       await restoreBackup(repository, pendingBackup);
       setLocalSettings(pendingBackup.settings);
@@ -110,7 +113,7 @@ export function SettingsPage({
       setStatus('数据导入成功');
       onDashboardChanged();
     } catch {
-      setError('导入失败，现有数据未更改。');
+      setDialogError('导入失败，现有数据未更改。请重试或取消。');
     } finally {
       setBusyAction(null);
     }
@@ -119,6 +122,7 @@ export function SettingsPage({
   async function confirmReset() {
     setBusyAction('reset');
     setError('');
+    setDialogError('');
     try {
       await repository.replaceAll({
         settings: localSettings,
@@ -129,7 +133,7 @@ export function SettingsPage({
       setStatus('学习数据已重置');
       onDashboardChanged();
     } catch {
-      setError('重置失败，现有数据未更改。');
+      setDialogError('重置失败，现有数据未更改。请重试或取消。');
     } finally {
       setBusyAction(null);
     }
@@ -217,6 +221,7 @@ export function SettingsPage({
             disabled={controlsDisabled}
             onClick={() => {
               setError('');
+              setDialogError('');
               setStatus('');
               setShowResetDialog(true);
             }}
@@ -239,7 +244,11 @@ export function SettingsPage({
         <ConfirmDialog
           busy={busyAction === 'import'}
           confirmLabel="确认导入"
-          onCancel={() => setPendingBackup(null)}
+          error={dialogError}
+          onCancel={() => {
+            setDialogError('');
+            setPendingBackup(null);
+          }}
           onConfirm={() => void confirmImport()}
           title="确认导入数据"
         >
@@ -257,7 +266,11 @@ export function SettingsPage({
           busy={busyAction === 'reset'}
           confirmLabel="确认重置"
           destructive
-          onCancel={() => setShowResetDialog(false)}
+          error={dialogError}
+          onCancel={() => {
+            setDialogError('');
+            setShowResetDialog(false);
+          }}
           onConfirm={() => void confirmReset()}
           title="确认重置学习数据"
         >

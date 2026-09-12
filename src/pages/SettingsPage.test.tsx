@@ -213,6 +213,48 @@ describe('SettingsPage', () => {
     expect(storage.snapshot()).toEqual(before);
   });
 
+  it('restores focus to the exact import and reset controls after sequential dialogs', async () => {
+    const storage = repository();
+    renderSettings(storage);
+    const fileInput = await screen.findByLabelText('选择备份文件');
+    fileInput.focus();
+
+    chooseFile(JSON.stringify(validBackup));
+
+    const importDialog = await screen.findByRole('dialog', { name: '确认导入数据' });
+    const importCancel = within(importDialog).getByRole('button', { name: '取消' });
+    expect(importCancel).toHaveFocus();
+    fireEvent.click(importCancel);
+    expect(fileInput).toHaveFocus();
+
+    const reset = screen.getByRole('button', { name: '重置学习数据' });
+    reset.focus();
+    fireEvent.click(reset);
+    const resetDialog = screen.getByRole('dialog', { name: '确认重置学习数据' });
+    const resetCancel = within(resetDialog).getByRole('button', { name: '取消' });
+    expect(resetCancel).toHaveFocus();
+    fireEvent.click(resetCancel);
+    expect(reset).toHaveFocus();
+  });
+
+  it('blocks background setting and navigation mutations while confirmation is pending', async () => {
+    const storage = repository();
+    renderSettings(storage);
+    const autoSpeak = await screen.findByRole('checkbox', { name: '学习时自动发音' });
+    const todayLink = screen.getByRole('link', { name: '今日' });
+
+    chooseFile(JSON.stringify(validBackup));
+    const dialog = await screen.findByRole('dialog', { name: '确认导入数据' });
+
+    fireEvent.click(autoSpeak);
+    fireEvent.click(todayLink);
+
+    expect(storage.saveSettings).not.toHaveBeenCalled();
+    expect(storage.snapshot().settings).toEqual(initialSettings);
+    fireEvent.click(within(dialog).getByRole('button', { name: '取消' }));
+    expect(screen.getByRole('heading', { name: '设置' })).toBeVisible();
+  });
+
   it('restores a validated backup only after explicit confirmation and refreshes data', async () => {
     const storage = repository();
     renderSettings(storage);
@@ -232,6 +274,25 @@ describe('SettingsPage', () => {
     });
     expect(await screen.findByRole('status')).toHaveTextContent('数据导入成功');
     await waitFor(() => expect(storage.getAllProgress).toHaveBeenCalledTimes(2));
+  });
+
+  it('keeps import confirmation active with an actionable error when restore fails', async () => {
+    const storage = repository();
+    const before = storage.snapshot();
+    vi.mocked(storage.replaceAll).mockRejectedValueOnce(new Error('restore failed'));
+    renderSettings(storage);
+    await screen.findByRole('heading', { name: '设置' });
+    chooseFile(JSON.stringify(validBackup));
+    const dialog = await screen.findByRole('dialog', { name: '确认导入数据' });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '确认导入' }));
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      '导入失败，现有数据未更改。请重试或取消。',
+    );
+    expect(within(dialog).getByRole('button', { name: '确认导入' })).toBeEnabled();
+    expect(within(dialog).getByRole('button', { name: '取消' })).toBeEnabled();
+    expect(storage.snapshot()).toEqual(before);
   });
 
   it('resets progress only behind a separate destructive confirmation', async () => {
@@ -254,5 +315,23 @@ describe('SettingsPage', () => {
       dailyStats: [],
     }));
     expect(await screen.findByRole('status')).toHaveTextContent('学习数据已重置');
+  });
+
+  it('keeps reset confirmation active with an actionable error when reset fails', async () => {
+    const storage = repository();
+    const before = storage.snapshot();
+    vi.mocked(storage.replaceAll).mockRejectedValueOnce(new Error('reset failed'));
+    renderSettings(storage);
+    fireEvent.click(await screen.findByRole('button', { name: '重置学习数据' }));
+    const dialog = screen.getByRole('dialog', { name: '确认重置学习数据' });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '确认重置' }));
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      '重置失败，现有数据未更改。请重试或取消。',
+    );
+    expect(within(dialog).getByRole('button', { name: '确认重置' })).toBeEnabled();
+    expect(within(dialog).getByRole('button', { name: '取消' })).toBeEnabled();
+    expect(storage.snapshot()).toEqual(before);
   });
 });
