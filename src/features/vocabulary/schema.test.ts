@@ -77,4 +77,68 @@ describe('vocabulary schema', () => {
       { index: 3, code: 'invalid-entry' },
     ]);
   });
+
+  it('reports duplicate words independently from duplicate IDs', () => {
+    const result = validateVocabulary([
+      valid,
+      { ...valid, id: 'allocate-alternative' },
+    ]);
+
+    expect(result.issues).toContainEqual({ index: 1, code: 'duplicate-word' });
+    expect(result.summary.duplicateWords).toBe(1);
+  });
+
+  it('continues tracking IDs after a duplicate-word issue', () => {
+    const result = validateVocabulary([
+      valid,
+      { ...valid, id: 'second-id' },
+      {
+        ...valid,
+        id: 'second-id',
+        word: 'evaluate',
+        example: 'Researchers evaluate the evidence.',
+      },
+    ]);
+
+    expect(result.issues).toEqual([
+      { index: 1, code: 'duplicate-word' },
+      { index: 2, code: 'duplicate-id' },
+    ]);
+  });
+
+  it('enforces the curated ID, tag, part-of-speech, and example policies', () => {
+    const result = validateVocabulary([
+      { ...valid, id: 'Upper_Case' },
+      { ...valid, id: 'invalid-tag', tags: ['business'] },
+      { ...valid, id: 'invalid-pos', partOfSpeech: 'v.' },
+      { ...valid, id: 'missing-headword', example: 'Funding should reach rural schools.' },
+    ]);
+
+    expect(result.issues).toEqual(expect.arrayContaining([
+      { index: 0, code: 'invalid-id' },
+      { index: 1, code: 'invalid-tag' },
+      { index: 2, code: 'invalid-part-of-speech' },
+      { index: 3, code: 'example-mismatch' },
+    ]));
+    expect(result.summary).toMatchObject({
+      exampleMismatches: 1,
+      invalidIds: 1,
+      invalidPartsOfSpeech: 1,
+      invalidTags: 1,
+    });
+  });
+
+  it('counts blank fields and rejects placeholder copy', () => {
+    const result = validateVocabulary([
+      { ...valid, id: 'blank-field', definitionZh: '   ' },
+      { ...valid, id: 'placeholder-copy', exampleZh: '待补充翻译。' },
+    ]);
+
+    expect(result.issues).toEqual(expect.arrayContaining([
+      { index: 0, code: 'invalid-entry' },
+      { index: 1, code: 'placeholder-text' },
+    ]));
+    expect(result.summary.missingFields).toBe(1);
+    expect(result.summary.placeholderFields).toBe(1);
+  });
 });

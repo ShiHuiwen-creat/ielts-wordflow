@@ -6,7 +6,7 @@ import { AppRouter } from './router';
 
 interface AppProps {
   repository: StorageRepository;
-  vocabulary: readonly VocabularyEntry[];
+  vocabulary?: readonly VocabularyEntry[];
   now?: () => Date;
   utcOffsetMinutes?: () => number;
   onReload?: () => void;

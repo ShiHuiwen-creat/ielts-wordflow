@@ -18,7 +18,7 @@ function entry(id: string, word: string): VocabularyEntry {
     id,
     word,
     phonetic: `/${word}/`,
-    partOfSpeech: 'v.',
+    partOfSpeech: 'verb',
     definitionZh: `${word} 的释义`,
     example: `We can ${word} this example.`,
     exampleZh: '示例翻译。',

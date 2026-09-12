@@ -15,7 +15,7 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <BrowserRouter>
-      <App repository={createRepository('ielts-wordflow')} vocabulary={[]} />
+      <App repository={createRepository('ielts-wordflow')} />
     </BrowserRouter>
   </StrictMode>,
 );

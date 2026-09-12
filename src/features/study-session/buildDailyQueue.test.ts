@@ -12,7 +12,7 @@ function entry(id: string): VocabularyEntry {
     definitionZh: '测试',
     example: 'A test example.',
     exampleZh: '一个测试示例。',
-    tags: ['test'],
+    tags: ['academic'],
     level: 'ielts-6-6.5',
   };
 }

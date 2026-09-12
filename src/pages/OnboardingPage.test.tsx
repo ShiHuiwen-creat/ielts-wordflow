@@ -10,7 +10,7 @@ function entries(count: number): VocabularyEntry[] {
     id: `word-${index}`,
     word: `word${index}`,
     phonetic: `/word${index}/`,
-    partOfSpeech: 'n.',
+    partOfSpeech: 'noun',
     definitionZh: '测试释义',
     example: `A sentence with word${index}.`,
     exampleZh: '测试例句。',

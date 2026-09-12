@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { coreVocabulary } from '../features/vocabulary/data';
 import type { VocabularyEntry } from '../features/vocabulary/types';
 import type { StorageRepository } from '../lib/storage/types';
 import { AppContext } from './appContext';
@@ -6,7 +7,7 @@ import { AppContext } from './appContext';
 interface AppProvidersProps {
   children: ReactNode;
   repository: StorageRepository;
-  vocabulary: readonly VocabularyEntry[];
+  vocabulary?: readonly VocabularyEntry[];
   now?: () => Date;
   utcOffsetMinutes?: () => number;
 }
@@ -14,7 +15,7 @@ interface AppProvidersProps {
 export function AppProviders({
   children,
   repository,
-  vocabulary,
+  vocabulary = coreVocabulary,
   now = () => new Date(),
   utcOffsetMinutes = () => -new Date().getTimezoneOffset(),
 }: AppProvidersProps) {

@@ -10,7 +10,7 @@ const vocabulary: VocabularyEntry[] = Array.from({ length: 4 }, (_, index) => ({
   id: `word-${index}`,
   word: `word${index}`,
   phonetic: `/word${index}/`,
-  partOfSpeech: 'n.',
+  partOfSpeech: 'noun',
   definitionZh: '释义',
   example: 'Example.',
   exampleZh: '例句。',
