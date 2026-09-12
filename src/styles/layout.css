@@ -54,6 +54,443 @@
   gap: 1.25rem;
 }
 
+.page-intro {
+  max-width: 38rem;
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.library-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(9rem, 1fr);
+  gap: 0.85rem;
+  padding: 1rem;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.field-control {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--color-forest-dark);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.field-control input,
+.field-control select {
+  min-height: var(--control-min);
+  width: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+  padding: 0.65rem 0.8rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.result-count {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.vocabulary-list,
+.feedback-summary ul,
+.stat-chart__plot {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vocabulary-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.vocabulary-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 1.7fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: var(--control-min);
+  padding: 1rem;
+  border-width: 1px;
+  box-shadow: none;
+  text-decoration: none;
+}
+
+.vocabulary-row:hover {
+  border-color: var(--color-accent);
+  background: rgba(217, 155, 82, 0.08);
+}
+
+.vocabulary-row__word {
+  display: grid;
+  min-width: 0;
+}
+
+.vocabulary-row__word strong {
+  overflow-wrap: anywhere;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+}
+
+.vocabulary-row__word small,
+.vocabulary-row__definition {
+  color: var(--color-muted);
+}
+
+.vocabulary-row__definition {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.status-pill,
+.tag-list span {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  background: var(--color-paper-deep);
+  color: var(--color-forest-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status-pill--unseen::before,
+.status-pill--learning::before,
+.status-pill--mastered::before {
+  margin-right: 0.3rem;
+}
+
+.status-pill--unseen::before {
+  content: '○';
+}
+
+.status-pill--learning::before {
+  content: '↗';
+}
+
+.status-pill--mastered::before {
+  content: '✓';
+}
+
+.empty-result {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1.5rem;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.empty-result span,
+.empty-result p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.back-link {
+  width: fit-content;
+  min-height: var(--control-min);
+  padding-block: 0.6rem;
+  color: var(--color-forest-dark);
+  font-weight: 800;
+  text-decoration-thickness: 1px;
+}
+
+.vocabulary-detail__card {
+  display: grid;
+  gap: 1.2rem;
+  padding: clamp(1.4rem, 6vw, 2.5rem);
+}
+
+.vocabulary-detail__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.vocabulary-detail__heading h1,
+.vocabulary-detail__meta,
+.vocabulary-detail__definition {
+  margin: 0;
+}
+
+.vocabulary-detail__meta {
+  color: var(--color-muted);
+  font-size: 1rem;
+}
+
+.vocabulary-detail__definition {
+  color: var(--color-forest-dark);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.vocabulary-detail__example {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1rem;
+}
+
+.vocabulary-detail__example h2 {
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+}
+
+.vocabulary-detail__example p {
+  margin-bottom: 0.45rem;
+}
+
+.vocabulary-detail__example p:last-child {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.metric-card {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1.15rem;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.metric-card > span,
+.metric-card small {
+  color: var(--color-muted);
+}
+
+.metric-card strong {
+  color: var(--color-forest-dark);
+  font-size: 1.15rem;
+}
+
+.stat-chart {
+  margin: 0;
+  padding: 1.25rem;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.stat-chart figcaption,
+.feedback-summary h2,
+.settings-section h2 {
+  margin-bottom: 1rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.stat-chart__plot {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.45rem;
+  align-items: end;
+  min-height: 13rem;
+}
+
+.stat-chart__plot li {
+  display: grid;
+  min-width: 0;
+  gap: 0.3rem;
+  justify-items: center;
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.stat-chart__bar-space {
+  display: flex;
+  width: min(100%, 2.5rem);
+  height: 8rem;
+  align-items: flex-end;
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+  background: var(--color-paper-deep);
+  overflow: hidden;
+}
+
+.stat-chart__bar {
+  width: 100%;
+  min-height: 2px;
+  background: var(--color-forest);
+}
+
+.stat-chart__plot time,
+.stat-chart__plot strong {
+  overflow-wrap: anywhere;
+}
+
+.stat-chart__plot strong {
+  color: var(--color-ink);
+}
+
+.feedback-summary,
+.settings-section {
+  padding: 1.25rem;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.feedback-summary ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.feedback-summary li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+  padding: 0.8rem;
+}
+
+.feedback-summary li span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-paper-deep);
+  color: var(--color-forest-dark);
+}
+
+.settings-section > p,
+.about-section p,
+.danger-zone p {
+  color: var(--color-muted);
+}
+
+.settings-section > p,
+.about-section p {
+  margin-bottom: 1rem;
+}
+
+.settings-goal-picker {
+  margin: 0 0 1.25rem;
+}
+
+.switch-row {
+  display: flex;
+  min-height: var(--control-min);
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--color-line);
+  padding-top: 1rem;
+  cursor: pointer;
+}
+
+.switch-row span {
+  display: grid;
+}
+
+.switch-row small {
+  color: var(--color-muted);
+}
+
+.switch-row input {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: 0 0 auto;
+  accent-color: var(--color-forest);
+}
+
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.file-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.file-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.file-button:has(input:focus-visible) {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.file-button--disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--color-line);
+  padding-top: 1.25rem;
+}
+
+.danger-zone p {
+  margin: 0.2rem 0 0;
+  font-size: 0.84rem;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  z-index: 30;
+  display: grid;
+  inset: 0;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(13, 55, 43, 0.55);
+}
+
+.confirm-dialog {
+  width: min(100%, 32rem);
+  padding: 1.4rem;
+}
+
+.confirm-dialog h2 {
+  margin-bottom: 0.8rem;
+}
+
+.confirm-dialog__body p {
+  color: var(--color-muted);
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+}
+
+.import-summary {
+  display: grid;
+  gap: 0.35rem;
+  padding-left: 1.25rem;
+}
+
 .today-heading {
   display: flex;
   align-items: flex-end;
@@ -553,8 +990,40 @@
   }
 
   .progress-grid,
-  .goal-picker__options {
+  .goal-picker__options,
+  .stats-overview,
+  .feedback-summary ul {
     grid-template-columns: 1fr;
+  }
+
+  .library-controls,
+  .vocabulary-row {
+    grid-template-columns: 1fr;
+  }
+
+  .vocabulary-row {
+    gap: 0.5rem;
+  }
+
+  .vocabulary-row .status-pill {
+    width: fit-content;
+  }
+
+  .stat-chart {
+    padding-inline: 0.75rem;
+  }
+
+  .stat-chart__plot {
+    gap: 0.2rem;
+  }
+
+  .stat-chart__plot time {
+    writing-mode: vertical-rl;
+  }
+
+  .danger-zone {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .goal-option {

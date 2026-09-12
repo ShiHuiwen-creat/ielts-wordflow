@@ -8,6 +8,11 @@ export interface DayActivity {
 
 export interface ProgressSummary {
   masteredCount: number;
+  feedback: {
+    again: number;
+    hard: number;
+    known: number;
+  };
   today: {
     newLearned: number;
     reviews: number;
@@ -53,8 +58,18 @@ export function summarizeProgress(
     streakDate = shiftDate(streakDate, -1);
   }
 
+  const feedback = dailyStats.reduce(
+    (total, stats) => ({
+      again: total.again + stats.again,
+      hard: total.hard + stats.hard,
+      known: total.known + stats.known,
+    }),
+    { again: 0, hard: 0, known: 0 },
+  );
+
   return {
     masteredCount: progress.filter(({ mastered }) => mastered).length,
+    feedback,
     today: {
       newLearned: todayNewLearned,
       reviews: todayReviews,

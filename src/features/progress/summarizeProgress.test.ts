@@ -47,6 +47,15 @@ describe('summarizeProgress', () => {
     expect(result.today).toEqual({ newLearned: 3, reviews: 4, total: 7 });
   });
 
+  it('sums all three feedback categories across every stored day', () => {
+    const first = { ...stats('2026-09-01'), again: 2, hard: 3, known: 4 };
+    const second = { ...stats(TODAY), again: 1, hard: 0, known: 5 };
+
+    const result = summarizeProgress([], [first, second], TODAY);
+
+    expect(result.feedback).toEqual({ again: 3, hard: 3, known: 9 });
+  });
+
   it('fills missing days with zero across the seven days ending today', () => {
     const result = summarizeProgress(
       [],

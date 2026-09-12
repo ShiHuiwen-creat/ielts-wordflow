@@ -2,24 +2,15 @@ import { useContext } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { OnboardingPage } from '../pages/OnboardingPage';
+import { SettingsPage } from '../pages/SettingsPage';
 import { StorageBlockedPage } from '../pages/StorageBlockedPage';
+import { StatsPage } from '../pages/StatsPage';
 import { StudyPage } from '../pages/StudyPage';
 import { TodayPage } from '../pages/TodayPage';
+import { VocabularyDetailPage } from '../pages/VocabularyDetailPage';
+import { VocabularyPage } from '../pages/VocabularyPage';
 import { AppContext } from './appContext';
 import { useDashboard } from './useDashboard';
-
-function PlaceholderPage({ title, description }: { title: string; description: string }) {
-  return (
-    <section className="page-stack" aria-labelledby="placeholder-title">
-      <p className="eyebrow">IELTS WordFlow</p>
-      <h1 id="placeholder-title">{title}</h1>
-      <div className="card placeholder-card">
-        <span className="placeholder-card__icon" aria-hidden="true">◇</span>
-        <p>{description}</p>
-      </div>
-    </section>
-  );
-}
 
 export function AppRouter() {
   const dependencies = useContext(AppContext);
@@ -69,9 +60,48 @@ export function AppRouter() {
             />
           )}
         />
-        <Route path="/vocabulary" element={<PlaceholderPage title="词库" description="词库浏览即将开放。" />} />
-        <Route path="/stats" element={<PlaceholderPage title="统计" description="学习统计即将开放。" />} />
-        <Route path="/settings" element={<PlaceholderPage title="设置" description="设置与数据工具即将开放。" />} />
+        <Route
+          path="/vocabulary"
+          element={(
+            <VocabularyPage
+              progress={state.source.progress}
+              vocabulary={dependencies.vocabulary}
+            />
+          )}
+        />
+        <Route
+          path="/vocabulary/:wordId"
+          element={(
+            <VocabularyDetailPage
+              progress={state.source.progress}
+              vocabulary={dependencies.vocabulary}
+            />
+          )}
+        />
+        <Route
+          path="/stats"
+          element={(
+            <StatsPage
+              summary={state.dashboard.progressSummary}
+              totalVocabulary={dependencies.vocabulary.length}
+            />
+          )}
+        />
+        <Route
+          path="/settings"
+          element={(
+            <SettingsPage
+              onDashboardChanged={(settings) => {
+                if (settings !== undefined) {
+                  applySettings(settings);
+                }
+                refreshDashboard();
+              }}
+              repository={dependencies.repository}
+              settings={state.dashboard.settings}
+            />
+          )}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>

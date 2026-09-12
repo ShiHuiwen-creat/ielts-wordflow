@@ -22,13 +22,15 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
 button,
 a,
 input,
+select,
 label {
   -webkit-tap-highlight-color: transparent;
 }
@@ -91,6 +93,31 @@ a {
 .button--primary:active {
   transform: translateY(2px);
   box-shadow: 0 2px 0 var(--color-forest-dark);
+}
+
+.button--secondary {
+  border-color: var(--color-forest);
+  background: var(--color-surface);
+  color: var(--color-forest-dark);
+}
+
+.button--secondary:hover {
+  background: var(--color-paper-deep);
+}
+
+.button--danger,
+.button--danger-outline {
+  border-color: var(--color-error);
+}
+
+.button--danger {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.button--danger-outline {
+  background: var(--color-surface);
+  color: var(--color-error);
 }
 
 .button:disabled {
