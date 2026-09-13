@@ -1,0 +1,45 @@
+name: Feature request
+description: Propose a focused improvement to IELTS WordFlow
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or learning need
+      description: What learner or contributor problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior, not only the interface.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What can users do today, and why is that insufficient?
+  - type: textarea
+    id: offline-privacy
+    attributes:
+      label: Offline and privacy impact
+      description: Note any new network, storage, backup, or permission requirements.
+    validations:
+      required: true
+  - type: textarea
+    id: accessibility
+    attributes:
+      label: Accessibility considerations
+      description: Describe keyboard, screen-reader, contrast, motion, or mobile implications.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for a similar proposal.
+          required: true
+        - label: This proposal preserves local-first privacy or clearly explains why it cannot.
+          required: true
