@@ -1,7 +1,36 @@
+function findEnglishVoice(voices: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
+  const britishVoice = voices.find(({ lang }) => lang.toLowerCase() === 'en-gb');
+  const englishVoice = voices.find(({ lang }) => lang.toLowerCase().startsWith('en'));
+
+  return britishVoice ?? englishVoice;
+}
+
 export function canSpeak(): boolean {
-  return typeof window !== 'undefined'
-    && window.speechSynthesis !== undefined
-    && typeof window.SpeechSynthesisUtterance === 'function';
+  if (typeof window === 'undefined'
+    || window.speechSynthesis === undefined
+    || typeof window.SpeechSynthesisUtterance !== 'function') {
+    return false;
+  }
+
+  try {
+    return findEnglishVoice(window.speechSynthesis.getVoices()) !== undefined;
+  } catch {
+    return false;
+  }
+}
+
+export function subscribeToSpeechAvailability(
+  listener: (available: boolean) => void,
+): () => void {
+  if (typeof window === 'undefined' || window.speechSynthesis === undefined) {
+    return () => undefined;
+  }
+
+  const synthesis = window.speechSynthesis;
+  const handleVoicesChanged = () => listener(canSpeak());
+
+  synthesis.addEventListener('voiceschanged', handleVoicesChanged);
+  return () => synthesis.removeEventListener('voiceschanged', handleVoicesChanged);
 }
 
 export function speakWord(word: string): boolean {
@@ -12,13 +41,14 @@ export function speakWord(word: string): boolean {
   try {
     const synthesis = window.speechSynthesis;
     const voices = synthesis.getVoices();
-    const britishVoice = voices.find(({ lang }) => lang.toLowerCase() === 'en-gb');
-    const englishVoice = voices.find(({ lang }) => lang.toLowerCase().startsWith('en'));
-    const selectedVoice = britishVoice ?? englishVoice;
+    const selectedVoice = findEnglishVoice(voices);
+    if (selectedVoice === undefined) {
+      return false;
+    }
     const utterance = new window.SpeechSynthesisUtterance(word);
 
-    utterance.lang = selectedVoice?.lang ?? 'en-GB';
-    utterance.voice = selectedVoice ?? null;
+    utterance.lang = selectedVoice.lang;
+    utterance.voice = selectedVoice;
 
     synthesis.cancel();
     synthesis.speak(utterance);

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>正在打开 IELTS WordFlow…</title>
+  </head>
+  <body>
+    <script>
+      const base = '/ielts-wordflow';
+      const route = location.pathname.startsWith(`${base}/`)
+        ? location.pathname.slice(base.length)
+        : '/';
+      location.replace(`${base}/?route=${encodeURIComponent(`${route}${location.search}${location.hash}`)}`);
+    </script>
+  </body>
+</html>

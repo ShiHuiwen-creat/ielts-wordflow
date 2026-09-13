@@ -7,7 +7,11 @@ import { WordCard } from '../components/WordCard';
 import type { ReviewRating } from '../features/scheduler/types';
 import type { StudyQueueItem, StudySessionState } from '../features/study-session/types';
 import type { VocabularyEntry } from '../features/vocabulary/types';
-import { canSpeak, speakWord } from '../lib/speech/speakWord';
+import {
+  canSpeak,
+  speakWord,
+  subscribeToSpeechAvailability,
+} from '../lib/speech/speakWord';
 import type { StorageRepository } from '../lib/storage/types';
 
 interface StudyPageProps {
@@ -48,18 +52,23 @@ export function StudyPage({
   const [session, setSession] = useState(service.getState());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [speechAvailable, setSpeechAvailable] = useState(canSpeak);
   const busyRef = useRef(false);
   const vocabularyById = new Map(vocabulary.map((entry) => [entry.id, entry]));
   const entry = session.current === undefined
     ? undefined
     : vocabularyById.get(session.current.wordId);
-  const speechAvailable = canSpeak();
+
+  useEffect(
+    () => subscribeToSpeechAvailability(setSpeechAvailable),
+    [],
+  );
 
   useEffect(() => {
-    if (autoSpeak && entry !== undefined) {
+    if (autoSpeak && speechAvailable && entry !== undefined) {
       speakWord(entry.word);
     }
-  }, [autoSpeak, entry]);
+  }, [autoSpeak, entry, speechAvailable]);
 
   if (session.current === undefined) {
     return <SessionSummary summary={session.summary} />;

@@ -76,6 +76,14 @@ describe('speech adapter', () => {
     expect(spoken[0]).toMatchObject({ lang: 'en-AU', voice: english });
   });
 
+  it('reports speech unavailable when no English voice exists', () => {
+    const { synthesis } = installSpeech([voice('中文', 'zh-CN')]);
+
+    expect(canSpeak()).toBe(false);
+    expect(speakWord('coherent')).toBe(false);
+    expect(synthesis.speak).not.toHaveBeenCalled();
+  });
+
   it('reports unavailability and returns without throwing', () => {
     Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: undefined });
     Object.defineProperty(window, 'SpeechSynthesisUtterance', {

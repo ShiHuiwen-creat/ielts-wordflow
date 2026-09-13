@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../app/App';
 import type { WordProgress } from '../features/scheduler/types';
 import type { VocabularyEntry } from '../features/vocabulary/types';
@@ -12,6 +12,58 @@ const SETTINGS: AppSettings = {
   autoSpeak: false,
   onboardingComplete: true,
 };
+const originalSynthesis = window.speechSynthesis;
+const originalUtterance = window.SpeechSynthesisUtterance;
+
+function voice(name: string, lang: string): SpeechSynthesisVoice {
+  return {
+    default: false,
+    lang,
+    localService: true,
+    name,
+    voiceURI: name,
+  };
+}
+
+function installDeferredSpeech() {
+  let voices: SpeechSynthesisVoice[] = [];
+  const synthesis = Object.assign(new EventTarget(), {
+    cancel: vi.fn(),
+    getVoices: vi.fn(() => voices),
+    speak: vi.fn(),
+  });
+
+  class FakeUtterance {
+    lang = '';
+    voice: SpeechSynthesisVoice | null = null;
+
+    constructor(public text: string) {}
+  }
+
+  Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: synthesis });
+  Object.defineProperty(window, 'SpeechSynthesisUtterance', {
+    configurable: true,
+    value: FakeUtterance,
+  });
+
+  return {
+    loadVoices(nextVoices: SpeechSynthesisVoice[]) {
+      voices = nextVoices;
+      synthesis.dispatchEvent(new Event('voiceschanged'));
+    },
+  };
+}
+
+afterEach(() => {
+  Object.defineProperty(window, 'speechSynthesis', {
+    configurable: true,
+    value: originalSynthesis,
+  });
+  Object.defineProperty(window, 'SpeechSynthesisUtterance', {
+    configurable: true,
+    value: originalUtterance,
+  });
+});
 
 function entry(id: string): VocabularyEntry {
   return {
@@ -92,6 +144,20 @@ async function revealAndRate(rating: '不认识' | '模糊' | '认识') {
 }
 
 describe('StudyPage', () => {
+  it('enables speech when an English voice loads after the study card', async () => {
+    const speech = installDeferredSpeech();
+    renderStudy(repository());
+
+    const speakButton = await screen.findByRole('button', { name: '朗读单词 allocate' });
+    expect(speakButton).toBeDisabled();
+    expect(screen.getByText('暂无可用英语发音，仍可继续学习。')).toBeVisible();
+
+    act(() => speech.loadVoices([voice('UK English', 'en-GB')]));
+
+    expect(speakButton).toBeEnabled();
+    expect(screen.queryByText('暂无可用英语发音，仍可继续学习。')).not.toBeInTheDocument();
+  });
+
   it('keeps ratings absent until revealing every answer field', async () => {
     renderStudy(repository());
 
