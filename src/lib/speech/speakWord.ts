@@ -30,6 +30,7 @@ export function subscribeToSpeechAvailability(
   const handleVoicesChanged = () => listener(canSpeak());
 
   synthesis.addEventListener('voiceschanged', handleVoicesChanged);
+  handleVoicesChanged();
   return () => synthesis.removeEventListener('voiceschanged', handleVoicesChanged);
 }
 

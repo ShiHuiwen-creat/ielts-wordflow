@@ -10,6 +10,25 @@ async function onboard(page: Page) {
   await expect(page.getByRole('heading', { name: '今日学习' })).toBeVisible();
 }
 
+test('restores a direct Pages route with its pathname, query, and hash', async ({ page }) => {
+  const fallbackResponses: string[] = [];
+  page.on('response', (response) => {
+    if (response.status() === 404) {
+      fallbackResponses.push(response.url());
+    }
+  });
+
+  await page.goto('/ielts-wordflow/vocabulary?status=all#library');
+
+  await expect(page).toHaveURL(/\/ielts-wordflow\/vocabulary\?status=all#library$/);
+  expect(fallbackResponses).toContain(
+    'http://127.0.0.1:4173/ielts-wordflow/vocabulary?status=all',
+  );
+  await page.getByRole('radio', { name: '每天 10 个' }).check();
+  await page.getByRole('button', { name: '开始学习' }).click();
+  await expect(page.getByRole('heading', { name: '词库' })).toBeVisible();
+});
+
 test('onboards, studies one word, and keeps progress after reload', async ({ page }) => {
   await onboard(page);
   await page.getByRole('link', { name: '开始今日学习' }).click();

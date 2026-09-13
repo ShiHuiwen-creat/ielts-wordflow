@@ -54,6 +54,32 @@ function installDeferredSpeech() {
   };
 }
 
+function installSpeechDuringSubscription() {
+  const englishVoice = voice('UK English', 'en-GB');
+  let reads = 0;
+  const synthesis = Object.assign(new EventTarget(), {
+    cancel: vi.fn(),
+    getVoices: vi.fn(() => {
+      reads += 1;
+      return reads === 1 ? [] : [englishVoice];
+    }),
+    speak: vi.fn(),
+  });
+
+  class FakeUtterance {
+    lang = '';
+    voice: SpeechSynthesisVoice | null = null;
+
+    constructor(public text: string) {}
+  }
+
+  Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: synthesis });
+  Object.defineProperty(window, 'SpeechSynthesisUtterance', {
+    configurable: true,
+    value: FakeUtterance,
+  });
+}
+
 afterEach(() => {
   Object.defineProperty(window, 'speechSynthesis', {
     configurable: true,
@@ -144,6 +170,14 @@ async function revealAndRate(rating: '不认识' | '模糊' | '认识') {
 }
 
 describe('StudyPage', () => {
+  it('rechecks speech after subscribing so a voice loaded during setup is not missed', async () => {
+    installSpeechDuringSubscription();
+    renderStudy(repository());
+
+    const speakButton = await screen.findByRole('button', { name: '朗读单词 allocate' });
+    await waitFor(() => expect(speakButton).toBeEnabled());
+  });
+
   it('enables speech when an English voice loads after the study card', async () => {
     const speech = installDeferredSpeech();
     renderStudy(repository());
