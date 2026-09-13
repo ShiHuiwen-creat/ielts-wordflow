@@ -179,18 +179,21 @@ export function validateVocabulary(entries: readonly unknown[]): ValidationResul
       summary.exampleMismatches += 1;
     }
 
-    if (idIsUsable && wordIsUsable) {
+    if (idIsUsable) {
       const normalizedId = id.toLowerCase();
-      const normalizedWord = word.toLowerCase();
       const hasDuplicateId = ids.has(normalizedId);
-      const hasDuplicateWord = words.has(normalizedWord);
       ids.add(normalizedId);
-      words.add(normalizedWord);
 
       if (hasDuplicateId) {
         issues.push({ index, code: 'duplicate-id' });
         summary.duplicateIds += 1;
       }
+    }
+
+    if (wordIsUsable) {
+      const normalizedWord = word.toLowerCase();
+      const hasDuplicateWord = words.has(normalizedWord);
+      words.add(normalizedWord);
 
       if (hasDuplicateWord) {
         issues.push({ index, code: 'duplicate-word' });

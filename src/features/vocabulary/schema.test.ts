@@ -63,7 +63,7 @@ describe('vocabulary schema', () => {
     expect(isVocabularyEntry({ ...valid, level: 'ielts-7' })).toBe(false);
   });
 
-  it('reports exact indexes for invalid entries and duplicate valid ids', () => {
+  it('reports exact indexes for invalid entries and independently tracked duplicates', () => {
     const entries = [
       { ...valid, word: '   ' },
       valid,
@@ -73,6 +73,7 @@ describe('vocabulary schema', () => {
 
     expect(validateVocabulary(entries).issues).toEqual([
       { index: 0, code: 'invalid-entry' },
+      { index: 1, code: 'duplicate-id' },
       { index: 2, code: 'duplicate-id' },
       { index: 2, code: 'duplicate-word' },
       { index: 3, code: 'invalid-entry' },
@@ -122,6 +123,42 @@ describe('vocabulary schema', () => {
       duplicateIds: 1,
       duplicateWords: 1,
       invalidTags: 1,
+    });
+  });
+
+  it('tracks a usable ID when the same row has a blank word', () => {
+    const result = validateVocabulary([
+      { ...valid, word: '   ' },
+      {
+        ...valid,
+        word: 'evaluate',
+        example: 'Researchers evaluate the evidence.',
+      },
+    ]);
+
+    expect(result.issues).toEqual([
+      { index: 0, code: 'invalid-entry' },
+      { index: 1, code: 'duplicate-id' },
+    ]);
+    expect(result.summary).toMatchObject({
+      duplicateIds: 1,
+      duplicateWords: 0,
+    });
+  });
+
+  it('tracks a usable word when the same row has a blank ID', () => {
+    const result = validateVocabulary([
+      { ...valid, id: '   ' },
+      { ...valid, id: 'allocate-alternative' },
+    ]);
+
+    expect(result.issues).toEqual([
+      { index: 0, code: 'invalid-entry' },
+      { index: 1, code: 'duplicate-word' },
+    ]);
+    expect(result.summary).toMatchObject({
+      duplicateIds: 0,
+      duplicateWords: 1,
     });
   });
 
