@@ -26,7 +26,7 @@ The initial release contains three separately reviewable batches of 100 entries:
 
 Each batch is checked as JSON and by the shared TypeScript validator. The checks cover required fields, exact level, stable lowercase IDs, approved parts of speech and tags, placeholders, duplicate IDs and words, and example/headword matching.
 
-All 300 initial examples contain the exact headword as a separate word. For future entries, the validator also documents and accepts regular noun and verb forms formed with `-s`/`-es`, consonant-`y` to `-ies`, regular `-ed`, and regular `-ing` spelling changes. Irregular forms must either include the exact headword elsewhere in the example or be added to the documented validation policy before use.
+Every example must contain the exact headword as a separate word. The validator does not guess inflections, because suffix heuristics can accept nonexistent forms or confuse a short headword with a longer word. Future entries must follow the same exact-headword rule.
 
 ## Controlled vocabulary
 

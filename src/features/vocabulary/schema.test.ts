@@ -7,8 +7,8 @@ const valid = {
   phonetic: '/ˈæləkeɪt/',
   partOfSpeech: 'verb',
   definitionZh: '分配；拨给',
-  example: 'The council allocated more funds to public transport.',
-  exampleZh: '市政委员会为公共交通拨出了更多资金。',
+  example: 'The council can allocate more funds to public transport.',
+  exampleZh: '市政委员会可以为公共交通拨出更多资金。',
   tags: ['society'],
   level: 'ielts-6-6.5',
 };
@@ -74,6 +74,7 @@ describe('vocabulary schema', () => {
     expect(validateVocabulary(entries).issues).toEqual([
       { index: 0, code: 'invalid-entry' },
       { index: 2, code: 'duplicate-id' },
+      { index: 2, code: 'duplicate-word' },
       { index: 3, code: 'invalid-entry' },
     ]);
   });
@@ -106,6 +107,36 @@ describe('vocabulary schema', () => {
     ]);
   });
 
+  it('tracks usable IDs and words even when the first row has policy issues', () => {
+    const result = validateVocabulary([
+      { ...valid, tags: ['unsupported'] },
+      { ...valid },
+    ]);
+
+    expect(result.issues).toEqual([
+      { index: 0, code: 'invalid-tag' },
+      { index: 1, code: 'duplicate-id' },
+      { index: 1, code: 'duplicate-word' },
+    ]);
+    expect(result.summary).toMatchObject({
+      duplicateIds: 1,
+      duplicateWords: 1,
+      invalidTags: 1,
+    });
+  });
+
+  it('reports both duplicate dimensions for every exact duplicate', () => {
+    const result = validateVocabulary([valid, { ...valid }, { ...valid }]);
+
+    expect(result.issues).toEqual([
+      { index: 1, code: 'duplicate-id' },
+      { index: 1, code: 'duplicate-word' },
+      { index: 2, code: 'duplicate-id' },
+      { index: 2, code: 'duplicate-word' },
+    ]);
+    expect(result.summary).toMatchObject({ duplicateIds: 2, duplicateWords: 2 });
+  });
+
   it('enforces the curated ID, tag, part-of-speech, and example policies', () => {
     const result = validateVocabulary([
       { ...valid, id: 'Upper_Case' },
@@ -128,17 +159,58 @@ describe('vocabulary schema', () => {
     });
   });
 
-  it('counts blank fields and rejects placeholder copy', () => {
+  it('counts blank fields', () => {
     const result = validateVocabulary([
       { ...valid, id: 'blank-field', definitionZh: '   ' },
-      { ...valid, id: 'placeholder-copy', exampleZh: '待补充翻译。' },
     ]);
 
-    expect(result.issues).toEqual(expect.arrayContaining([
-      { index: 0, code: 'invalid-entry' },
-      { index: 1, code: 'placeholder-text' },
-    ]));
+    expect(result.issues).toContainEqual({ index: 0, code: 'invalid-entry' });
     expect(result.summary.missingFields).toBe(1);
+  });
+
+  it.each([
+    ['id', { id: 'TBD' }],
+    ['word', { word: 'placeholder' }],
+    ['phonetic', { phonetic: '/TBD/' }],
+    ['partOfSpeech', { partOfSpeech: 'TODO' }],
+    ['definitionZh', { definitionZh: '待补充释义。' }],
+    ['example', { example: 'Lorem ipsum placeholder.' }],
+    ['exampleZh', { exampleZh: '待补充翻译。' }],
+    ['level', { level: 'TBD' }],
+    ['tags', { tags: ['placeholder'] }],
+  ])('rejects placeholder text in %s', (_field, override) => {
+    const result = validateVocabulary([{ ...valid, ...override }]);
+
+    expect(result.issues).toContainEqual({ index: 0, code: 'placeholder-text' });
     expect(result.summary.placeholderFields).toBe(1);
+  });
+
+  it.each([
+    ['be', 'A bed occupies most of the small room.'],
+    ['make', 'The report says the device was maked locally.'],
+  ])('rejects a guessed inflection of %s', (word, example) => {
+    const result = validateVocabulary([{
+      ...valid,
+      id: word,
+      word,
+      example,
+    }]);
+
+    expect(result.issues).toContainEqual({ index: 0, code: 'example-mismatch' });
+    expect(result.summary.exampleMismatches).toBe(1);
+  });
+
+  it.each([
+    ['be', 'Flexible hours can be useful for parents.'],
+    ['make', 'Local firms can make the device more affordable.'],
+  ])('accepts the exact separate-word headword %s', (word, example) => {
+    const result = validateVocabulary([{
+      ...valid,
+      id: word,
+      word,
+      example,
+    }]);
+
+    expect(result.issues).toEqual([]);
   });
 });

@@ -42,4 +42,18 @@ describe('core vocabulary dataset', () => {
       expect(entry.level).toBe('ielts-6-6.5');
     });
   });
+
+  it('keeps the teaching example and Chinese translation paired accurately', () => {
+    expect(coreVocabulary.find(({ id }) => id === 'profession')).toMatchObject({
+      example: 'Teaching is a profession that requires continuous development.',
+      exampleZh: '教学是一项需要持续发展的职业。',
+    });
+  });
+
+  it('defines carbon in the emissions sense used by its example', () => {
+    expect(coreVocabulary.find(({ id }) => id === 'carbon')).toMatchObject({
+      definitionZh: '碳；碳排放量',
+      example: 'The company aims to cut its carbon output by half.',
+    });
+  });
 });

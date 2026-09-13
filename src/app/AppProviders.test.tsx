@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { useContext } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { coreVocabulary } from '../features/vocabulary/data';
 import type { StorageRepository } from '../lib/storage/types';
 import { AppContext } from './appContext';
 import { AppProviders } from './AppProviders';
@@ -32,6 +33,8 @@ describe('AppProviders production defaults', () => {
       </AppProviders>,
     );
 
-    expect(screen.getByLabelText('production vocabulary count')).toHaveTextContent('300');
+    expect(coreVocabulary.length).toBeGreaterThanOrEqual(300);
+    expect(screen.getByLabelText('production vocabulary count'))
+      .toHaveTextContent(String(coreVocabulary.length));
   });
 });

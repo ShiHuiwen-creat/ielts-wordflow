@@ -18,8 +18,6 @@ const requiredStringFields = [
   'exampleZh',
 ] as const;
 
-const authoredTextFields = ['definitionZh', 'example', 'exampleZh'] as const;
-
 const curatedIdPattern = /^[a-z]+(?:-[a-z]+)*$/;
 const placeholderPattern = /(?:\b(?:lorem ipsum|placeholder|tbd|todo)\b|待补(?:充)?|占位|示例翻译)/iu;
 const approvedPartsOfSpeech = new Set<string>(APPROVED_PARTS_OF_SPEECH);
@@ -64,53 +62,26 @@ function hasWellFormedTags(value: unknown): value is string[] {
   );
 }
 
-function regularWordForms(word: string, partOfSpeech: string): string[] {
-  const headword = word.trim().toLowerCase();
-  const forms = new Set([headword]);
-
-  if (!/^[a-z]+$/.test(headword)) {
-    return [...forms];
-  }
-
-  if (partOfSpeech === 'noun' || partOfSpeech === 'verb') {
-    if (/[^aeiou]y$/.test(headword)) {
-      forms.add(`${headword.slice(0, -1)}ies`);
-    } else if (/(?:s|x|z|ch|sh|o)$/.test(headword)) {
-      forms.add(`${headword}es`);
-    } else {
-      forms.add(`${headword}s`);
-    }
-  }
-
-  if (partOfSpeech === 'verb') {
-    if (/[^aeiou]y$/.test(headword)) {
-      forms.add(`${headword.slice(0, -1)}ied`);
-    } else if (headword.endsWith('e')) {
-      forms.add(`${headword}d`);
-    } else {
-      forms.add(`${headword}ed`);
-    }
-
-    if (headword.endsWith('ie')) {
-      forms.add(`${headword.slice(0, -2)}ying`);
-    } else if (headword.endsWith('e')) {
-      forms.add(`${headword.slice(0, -1)}ing`);
-    } else {
-      forms.add(`${headword}ing`);
-    }
-  }
-
-  return [...forms];
+function containsHeadword(example: string, word: string): boolean {
+  const escapedWord = word
+    .trim()
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\s+/g, '\\s+');
+  const pattern = new RegExp(`(^|[^a-z])${escapedWord}($|[^a-z])`, 'iu');
+  return pattern.test(example);
 }
 
-function containsHeadword(example: string, word: string, partOfSpeech: string): boolean {
-  return regularWordForms(word, partOfSpeech).some((form) => {
-    const escapedWord = form
-      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      .replace(/\s+/g, '\\s+');
-    const pattern = new RegExp(`(^|[^a-z])${escapedWord}($|[^a-z])`, 'iu');
-    return pattern.test(example);
-  });
+function placeholderFieldCount(candidate: Record<string, unknown>): number {
+  const stringFields = Object.values(candidate).filter(
+    (value): value is string => typeof value === 'string',
+  );
+  const stringTags = Array.isArray(candidate.tags)
+    ? candidate.tags.filter((tag): tag is string => typeof tag === 'string')
+    : [];
+
+  return [...stringFields, ...stringTags]
+    .filter((value) => placeholderPattern.test(value))
+    .length;
 }
 
 function emptySummary(total: number): ValidationSummary {
@@ -144,9 +115,18 @@ export function validateVocabulary(entries: readonly unknown[]): ValidationResul
     }
 
     const candidate = entry as Record<string, unknown>;
+    const rawId = candidate.id;
+    const rawWord = candidate.word;
+    const rawPartOfSpeech = candidate.partOfSpeech;
+    const rawExample = candidate.example;
+    const rawTags = candidate.tags;
     const missingFields = blankFieldCount(candidate);
-    const tagsAreWellFormed = hasWellFormedTags(candidate.tags);
+    const tagsAreWellFormed = hasWellFormedTags(rawTags);
     const levelIsValid = candidate.level === 'ielts-6-6.5';
+    const idIsUsable = isNonEmptyString(rawId);
+    const wordIsUsable = isNonEmptyString(rawWord);
+    const partOfSpeechIsUsable = isNonEmptyString(rawPartOfSpeech);
+    const exampleIsUsable = isNonEmptyString(rawExample);
 
     summary.missingFields += missingFields;
     if (!levelIsValid) {
@@ -159,72 +139,63 @@ export function validateVocabulary(entries: readonly unknown[]): ValidationResul
       }
       issues.push({ index, code: 'invalid-entry' });
       summary.invalidEntries += 1;
-      return;
     }
 
-    const id = (candidate.id as string).trim();
-    const word = (candidate.word as string).trim();
-    const partOfSpeech = (candidate.partOfSpeech as string).trim();
-    const tags = candidate.tags as string[];
-    const example = candidate.example as string;
-    const textFields = authoredTextFields.map((field) => candidate[field] as string);
-    let hasPolicyIssue = false;
+    const id = idIsUsable ? rawId.trim() : '';
+    const word = wordIsUsable ? rawWord.trim() : '';
+    const partOfSpeech = partOfSpeechIsUsable ? rawPartOfSpeech.trim() : '';
+    const example = exampleIsUsable ? rawExample : '';
 
-    if (!curatedIdPattern.test(id)) {
+    if (idIsUsable && !curatedIdPattern.test(id)) {
       issues.push({ index, code: 'invalid-id' });
       summary.invalidIds += 1;
-      hasPolicyIssue = true;
     }
 
-    if (!approvedPartsOfSpeech.has(partOfSpeech)) {
+    if (partOfSpeechIsUsable && !approvedPartsOfSpeech.has(partOfSpeech)) {
       issues.push({ index, code: 'invalid-part-of-speech' });
       summary.invalidPartsOfSpeech += 1;
-      hasPolicyIssue = true;
     }
 
-    const invalidTagCount = tags.filter((tag) => !approvedTags.has(tag)).length;
+    const invalidTagCount = tagsAreWellFormed
+      ? rawTags.filter((tag) => !approvedTags.has(tag)).length
+      : 0;
     if (invalidTagCount > 0) {
       issues.push({ index, code: 'invalid-tag' });
       summary.invalidTags += invalidTagCount;
-      hasPolicyIssue = true;
     }
 
-    const placeholderCount = textFields.filter((value) => placeholderPattern.test(value)).length;
+    const placeholderCount = placeholderFieldCount(candidate);
     if (placeholderCount > 0) {
       issues.push({ index, code: 'placeholder-text' });
       summary.placeholderFields += placeholderCount;
-      hasPolicyIssue = true;
     }
 
     if (
-      approvedPartsOfSpeech.has(partOfSpeech) &&
-      !containsHeadword(example, word, partOfSpeech)
+      wordIsUsable &&
+      exampleIsUsable &&
+      !containsHeadword(example, word)
     ) {
       issues.push({ index, code: 'example-mismatch' });
       summary.exampleMismatches += 1;
-      hasPolicyIssue = true;
     }
 
-    if (hasPolicyIssue) {
-      return;
-    }
+    if (idIsUsable && wordIsUsable) {
+      const normalizedId = id.toLowerCase();
+      const normalizedWord = word.toLowerCase();
+      const hasDuplicateId = ids.has(normalizedId);
+      const hasDuplicateWord = words.has(normalizedWord);
+      ids.add(normalizedId);
+      words.add(normalizedWord);
 
-    const normalizedId = id.toLowerCase();
-    const normalizedWord = word.toLowerCase();
-    const hasDuplicateId = ids.has(normalizedId);
-    const hasDuplicateWord = words.has(normalizedWord);
-    ids.add(normalizedId);
-    words.add(normalizedWord);
+      if (hasDuplicateId) {
+        issues.push({ index, code: 'duplicate-id' });
+        summary.duplicateIds += 1;
+      }
 
-    if (hasDuplicateId) {
-      issues.push({ index, code: 'duplicate-id' });
-      summary.duplicateIds += 1;
-      return;
-    }
-
-    if (hasDuplicateWord) {
-      issues.push({ index, code: 'duplicate-word' });
-      summary.duplicateWords += 1;
+      if (hasDuplicateWord) {
+        issues.push({ index, code: 'duplicate-word' });
+        summary.duplicateWords += 1;
+      }
     }
   });
 
