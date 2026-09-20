@@ -4,6 +4,10 @@
 
 IELTS WordFlow is a small web application under active development. Security fixes are made on the latest `main` branch; older commits and third-party forks are not maintained releases.
 
+## Repository publication prerequisite
+
+Before making the repository public, a repository administrator must enable **Private vulnerability reporting** under **Settings → Security → Code security and analysis**. Confirm that **Report a vulnerability** is available in the repository's **Security** tab and opens a private GitHub Security Advisory. Do not publish until this private route is working; do not substitute a public issue or personal email address.
+
 ## Reporting a vulnerability
 
 Please do not disclose a suspected vulnerability in a public issue, discussion, or pull request. Use this repository's **Security** tab to open a **private vulnerability report** backed by GitHub Security Advisories. This gives maintainers a private place to investigate and coordinate a fix without publishing personal contact information.

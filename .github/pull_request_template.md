@@ -16,11 +16,16 @@ List any additional focused tests and their results.
 
 ## Product checks
 
-- [ ] I considered keyboard and screen-reader behavior, visible focus, contrast, and mobile layout.
+- [ ] I reviewed accessibility: keyboard and screen-reader behavior, visible focus, contrast, and mobile layout.
 - [ ] I considered offline behavior, browser storage, backup compatibility, and privacy.
 - [ ] I added or updated tests for behavior changes where practical.
 - [ ] I updated English and Chinese documentation together when public behavior changed.
 - [ ] I documented the source and license of any vocabulary-data changes.
+
+## Release checklist
+
+- [ ] For a public release, an administrator enabled **Private vulnerability reporting** and verified that **Report a vulnerability** opens a private GitHub Security Advisory.
+- [ ] Sensitive reports are not redirected to a public issue or personal email fallback.
 
 ## Visual changes
 

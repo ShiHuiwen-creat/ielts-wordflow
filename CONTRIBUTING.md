@@ -56,3 +56,10 @@ If Chromium is missing, run `npm run e2e:install` and retry. Pull requests run t
 4. Respond to review feedback and keep the branch current.
 
 By contributing software code, you agree that your contribution is licensed under the repository's MIT License. Contributions to the three core vocabulary datasets are licensed under CC BY 4.0 as described in `DATA_SOURCES.md`; include the required provenance with any data contribution.
+
+## Release checklist
+
+- [ ] Before making the repository public, a repository administrator has enabled **Private vulnerability reporting** under **Settings → Security → Code security and analysis**.
+- [ ] The **Security** tab's **Report a vulnerability** route opens a private GitHub Security Advisory; a public issue or personal email is not used as a fallback.
+- [ ] The full validation gate, production build, and offline Playwright acceptance suite pass on the release commit.
+- [ ] English and Chinese release documentation describe the same public behavior and data-safety limitations.
