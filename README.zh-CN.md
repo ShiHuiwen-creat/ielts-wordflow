@@ -6,7 +6,14 @@ IELTS WordFlow 是一款面向雅思 6–6.5 分学习者的中文离线优先�
 
 ## 截图
 
-项目会在最终视觉检查完成后添加截图。在截图文件真正创建之前，本节有意不放置图片链接。
+<p align="center">
+  <img src="docs/screenshots/today-mobile.png" alt="390×844 手机视口下的今日页" width="300">
+  <img src="docs/screenshots/study-mobile.png" alt="390×844 手机视口下已显示答案和三档文字反馈的学习页" width="300">
+</p>
+
+![1440×900 桌面视口下的学习统计页](docs/screenshots/stats-desktop.png)
+
+这些图片均在发布前视觉检查时从生产构建中截取。
 
 ## 功能
 

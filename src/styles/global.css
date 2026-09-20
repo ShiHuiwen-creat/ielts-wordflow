@@ -36,7 +36,7 @@ label {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-accent);
+  outline: 3px solid var(--color-forest);
   outline-offset: 3px;
 }
 

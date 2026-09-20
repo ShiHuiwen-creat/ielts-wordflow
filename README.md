@@ -6,7 +6,14 @@ IELTS WordFlow is an offline-first, Chinese-language vocabulary study app for le
 
 ## Screenshots
 
-Screenshots will be added after the final visual QA pass. This section intentionally contains no image links until those files exist.
+<p align="center">
+  <img src="docs/screenshots/today-mobile.png" alt="Today page at a 390 by 844 mobile viewport" width="300">
+  <img src="docs/screenshots/study-mobile.png" alt="Study page with a revealed answer and three written rating choices at a 390 by 844 mobile viewport" width="300">
+</p>
+
+![Statistics page at a 1440 by 900 desktop viewport](docs/screenshots/stats-desktop.png)
+
+These images were captured from the production build during the release visual QA pass.
 
 ## Features
 

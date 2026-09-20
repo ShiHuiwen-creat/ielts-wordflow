@@ -188,7 +188,7 @@ describe('StudyPage', () => {
 
     act(() => speech.loadVoices([voice('UK English', 'en-GB')]));
 
-    expect(speakButton).toBeEnabled();
+    await waitFor(() => expect(speakButton).toBeEnabled());
     expect(screen.queryByText('暂无可用英语发音，仍可继续学习。')).not.toBeInTheDocument();
   });
 
