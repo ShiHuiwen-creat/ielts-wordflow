@@ -85,9 +85,9 @@ Forks published under a different repository name must update the shared base va
 
 The app bundles its vocabulary and static shell at build time. React reads and writes study state through the storage repository; the service worker caches production assets for subsequent offline use.
 
-## Publication prerequisite
+## Public repository release sequence
 
-Before making the repository public, a repository administrator must enable **Private vulnerability reporting** under **Settings → Security → Code security and analysis**. Confirm that the **Security** tab offers a private **Report a vulnerability** route backed by GitHub Security Advisories. Do not publish the repository until that private route works; no public issue or personal email is an acceptable fallback for sensitive reports.
+After making the repository public, a repository administrator must immediately enable **Private vulnerability reporting** under **Settings → Security → Code security and analysis**. Confirm that the **Security** tab offers a private **Report a vulnerability** route backed by GitHub Security Advisories. Complete and verify this setup before announcing or publishing a release, sharing the repository broadly, or accepting external traffic; no public issue or personal email is an acceptable fallback for sensitive reports.
 
 ## Contributing
 

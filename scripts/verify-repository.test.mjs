@@ -95,21 +95,51 @@ describe('substantive documentation', () => {
     await expectInvalid('SECURITY.md', '# Security Policy\n\nReport problems in a public issue.');
   });
 
-  it('rejects a security policy without the pre-publication enablement prerequisite', async () => {
+  it('rejects a security policy without the public-repository security sequence', async () => {
     const policy = await canonicalFile('SECURITY.md');
     await expectInvalid(
       'SECURITY.md',
-      policy.replace(/\n## Repository publication prerequisite[\s\S]*?(?=\n## )/, ''),
+      policy.replace(/\n## Public repository security setup[\s\S]*?(?=\n## )/, ''),
     );
   });
 
   it.each([
-    ['README.md', 'Publication prerequisite'],
-    ['README.zh-CN.md', '公开发布前提'],
+    ['README.md', 'Public repository release sequence'],
+    ['README.zh-CN.md', '公开仓库发布顺序'],
   ])('rejects %s without private-reporting publication guidance', async (path, heading) => {
     const readme = await canonicalFile(path);
     const section = new RegExp(`\\n## ${heading}[\\s\\S]*?(?=\\n## )`);
     await expectInvalid(path, readme.replace(section, ''));
+  });
+
+  it.each([
+    [
+      'SECURITY.md',
+      'After making the repository public, a repository administrator must immediately enable',
+      'Before making the repository public, a repository administrator must enable',
+    ],
+    [
+      'README.md',
+      'After making the repository public, a repository administrator must immediately enable',
+      'Before making the repository public, a repository administrator must enable',
+    ],
+    [
+      'README.zh-CN.md',
+      '仓库设为公开后，仓库管理员必须立即在',
+      '公开仓库前，仓库管理员必须在',
+    ],
+    [
+      'CONTRIBUTING.md',
+      'Immediately after making the repository public, a repository administrator must enable',
+      'Before making the repository public, a repository administrator has enabled',
+    ],
+  ])('rejects the impossible private-reporting sequence in %s', async (
+    path,
+    feasibleSequence,
+    impossibleSequence,
+  ) => {
+    const contents = await canonicalFile(path);
+    await expectInvalid(path, contents.replace(feasibleSequence, impossibleSequence));
   });
 
   it('rejects an empty pull request checklist', async () => {
@@ -193,6 +223,17 @@ describe('parsed GitHub workflows', () => {
     await expectInvalid(
       '.github/workflows/ci.yml',
       workflow.replace('    branches: [main]', '    branches: [develop]'),
+    );
+  });
+
+  it('rejects an extra CI event', async () => {
+    const workflow = await canonicalFile('.github/workflows/ci.yml');
+    await expectInvalid(
+      '.github/workflows/ci.yml',
+      workflow.replace(
+        '  pull_request:\n    branches: [main]',
+        '  pull_request:\n    branches: [main]\n  workflow_dispatch:',
+      ),
     );
   });
 });

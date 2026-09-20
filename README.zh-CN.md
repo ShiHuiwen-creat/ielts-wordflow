@@ -85,9 +85,9 @@ npm run e2e
 
 应用在构建时打包词汇和静态外壳。React 通过存储仓库读写学习状态，Service Worker 缓存生产资源以便后续离线使用。
 
-## 公开发布前提
+## 公开仓库发布顺序
 
-公开仓库前，仓库管理员必须在 **Settings → Security → Code security and analysis** 中启用 **Private vulnerability reporting**（私密漏洞报告）。请确认 **Security** 标签页中的 **Report a vulnerability** 会打开由 GitHub Security Advisories 支持的私密报告入口。该入口可用之前不要公开仓库；敏感报告不能改用公开 Issue 或私人邮箱接收。
+仓库设为公开后，仓库管理员必须立即在 **Settings → Security → Code security and analysis** 中启用 **Private vulnerability reporting**（私密漏洞报告）。请确认 **Security** 标签页中的 **Report a vulnerability** 会打开由 GitHub Security Advisories 支持的私密报告入口。在宣布或发布版本、广泛分享仓库或接受外部访问之前，必须完成并验证此设置；敏感报告不能改用公开 Issue 或私人邮箱接收。
 
 ## 参与贡献
 

@@ -59,7 +59,7 @@ By contributing software code, you agree that your contribution is licensed unde
 
 ## Release checklist
 
-- [ ] Before making the repository public, a repository administrator has enabled **Private vulnerability reporting** under **Settings → Security → Code security and analysis**.
-- [ ] The **Security** tab's **Report a vulnerability** route opens a private GitHub Security Advisory; a public issue or personal email is not used as a fallback.
+- [ ] Immediately after making the repository public, a repository administrator must enable **Private vulnerability reporting** under **Settings → Security → Code security and analysis**.
+- [ ] Before announcing or publishing a release, sharing the repository broadly, or accepting external traffic, the **Security** tab's **Report a vulnerability** route has been verified to open a private GitHub Security Advisory; a public issue or personal email is not used as a fallback.
 - [ ] The full validation gate, production build, and offline Playwright acceptance suite pass on the release commit.
 - [ ] English and Chinese release documentation describe the same public behavior and data-safety limitations.

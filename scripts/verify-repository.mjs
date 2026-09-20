@@ -253,10 +253,13 @@ function validateWorkflows(files, nodeVersion, errors) {
   const pages = parseYamlFile(pagesPath, files.get(pagesPath), errors);
 
   if (ci !== undefined) {
-    if (!isRecord(ci.on)
+    const events = isRecord(ci.on) ? Object.keys(ci.on).sort() : [];
+    if (events.length !== 2
+      || events[0] !== 'pull_request'
+      || events[1] !== 'push'
       || !hasOnlyMainBranch(ci.on.push)
       || !hasOnlyMainBranch(ci.on.pull_request)) {
-      errors.push(`${ciPath}: must run for pushes and pull requests targeting only main`);
+      errors.push(`${ciPath}: triggers must be exactly push and pull_request targeting only main`);
     }
     if (!mapsEqual(ci.permissions, { contents: 'read' })) {
       errors.push(`${ciPath}: top-level permissions must be exactly contents: read`);
@@ -331,7 +334,7 @@ function validateDocumentation(files, packageJson, pagesBase, errors) {
     '## Validation and tests',
     '## GitHub Pages deployment',
     '## Architecture',
-    '## Publication prerequisite',
+    '## Public repository release sequence',
     '## Contributing',
     '## Licenses',
   ], errors);
@@ -341,7 +344,8 @@ function validateDocumentation(files, packageJson, pagesBase, errors) {
     'Clearing site data or browser storage',
     'Export a backup',
     'Private vulnerability reporting',
-    'Before making the repository public',
+    'After making the repository public, a repository administrator must immediately enable',
+    'before announcing or publishing a release',
     'CC BY 4.0',
     'MIT License',
   ], errors);
@@ -355,7 +359,7 @@ function validateDocumentation(files, packageJson, pagesBase, errors) {
     '## 校验与测试',
     '## GitHub Pages 部署',
     '## 架构',
-    '## 公开发布前提',
+    '## 公开仓库发布顺序',
     '## 参与贡献',
     '## 许可证',
   ], errors);
@@ -365,7 +369,8 @@ function validateDocumentation(files, packageJson, pagesBase, errors) {
     '清除网站数据或浏览器存储',
     '导出数据',
     'Private vulnerability reporting',
-    '公开仓库前',
+    '仓库设为公开后，仓库管理员必须立即在',
+    '在宣布或发布版本、广泛分享仓库或接受外部访问之前',
     'CC BY 4.0',
     'MIT License',
   ], errors);
@@ -410,6 +415,8 @@ function validateDocumentation(files, packageJson, pagesBase, errors) {
     'MIT License',
     'CC BY 4.0',
     'Private vulnerability reporting',
+    'Immediately after making the repository public',
+    'Before announcing or publishing a release',
   ], errors);
 
   const conduct = files.get('CODE_OF_CONDUCT.md');
@@ -442,13 +449,14 @@ function validateDocumentation(files, packageJson, pagesBase, errors) {
   expectHeadings('SECURITY.md', security, [
     '# Security Policy',
     '## Supported versions',
-    '## Repository publication prerequisite',
+    '## Public repository security setup',
     '## Reporting a vulnerability',
     '## Scope notes',
   ], errors);
   expectFragments('SECURITY.md', security, [
     'Private vulnerability reporting',
-    'Before making the repository public',
+    'After making the repository public, a repository administrator must immediately enable',
+    'before announcing or publishing a release',
     'Security',
     'private vulnerability report',
     'GitHub Security Advisories',

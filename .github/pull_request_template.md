@@ -24,7 +24,7 @@ List any additional focused tests and their results.
 
 ## Release checklist
 
-- [ ] For a public release, an administrator enabled **Private vulnerability reporting** and verified that **Report a vulnerability** opens a private GitHub Security Advisory.
+- [ ] Immediately after the repository is made public, an administrator enabled **Private vulnerability reporting** and verified that **Report a vulnerability** opens a private GitHub Security Advisory before announcing or publishing a release, sharing broadly, or accepting external traffic.
 - [ ] Sensitive reports are not redirected to a public issue or personal email fallback.
 
 ## Visual changes
