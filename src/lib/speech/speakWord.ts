@@ -1,8 +1,5 @@
-function findEnglishVoice(voices: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
-  const britishVoice = voices.find(({ lang }) => lang.toLowerCase() === 'en-gb');
-  const englishVoice = voices.find(({ lang }) => lang.toLowerCase().startsWith('en'));
-
-  return britishVoice ?? englishVoice;
+function findBritishVoice(voices: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
+  return voices.find(({ lang }) => lang.toLowerCase() === 'en-gb');
 }
 
 export function canSpeak(): boolean {
@@ -13,7 +10,7 @@ export function canSpeak(): boolean {
   }
 
   try {
-    return findEnglishVoice(window.speechSynthesis.getVoices()) !== undefined;
+    return findBritishVoice(window.speechSynthesis.getVoices()) !== undefined;
   } catch {
     return false;
   }
@@ -42,7 +39,7 @@ export function speakWord(word: string): boolean {
   try {
     const synthesis = window.speechSynthesis;
     const voices = synthesis.getVoices();
-    const selectedVoice = findEnglishVoice(voices);
+    const selectedVoice = findBritishVoice(voices);
     if (selectedVoice === undefined) {
       return false;
     }

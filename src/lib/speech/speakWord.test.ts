@@ -56,24 +56,25 @@ afterEach(() => {
 });
 
 describe('speech adapter', () => {
-  it('prefers an en-GB voice even when another English voice appears first', () => {
+  it('selects an en-GB voice case-insensitively when another English voice appears first', () => {
     const american = voice('US English', 'en-US');
-    const british = voice('UK English', 'en-GB');
+    const british = voice('UK English', 'EN-gB');
     const { spoken } = installSpeech([american, british]);
 
     expect(speakWord('allocate')).toBe(true);
 
-    expect(spoken[0]).toMatchObject({ text: 'allocate', lang: 'en-GB', voice: british });
+    expect(spoken[0]).toMatchObject({ text: 'allocate', lang: 'EN-gB', voice: british });
   });
 
-  it('falls back to the first English voice when en-GB is unavailable', () => {
-    const chinese = voice('中文', 'zh-CN');
-    const english = voice('English', 'en-AU');
-    const { spoken } = installSpeech([chinese, english]);
+  it('reports speech unavailable when only non-British English voices exist', () => {
+    const { synthesis } = installSpeech([
+      voice('US English', 'en-US'),
+      voice('Australian English', 'en-AU'),
+    ]);
 
-    speakWord('coherent');
-
-    expect(spoken[0]).toMatchObject({ lang: 'en-AU', voice: english });
+    expect(canSpeak()).toBe(false);
+    expect(speakWord('coherent')).toBe(false);
+    expect(synthesis.speak).not.toHaveBeenCalled();
   });
 
   it('reports speech unavailable when no English voice exists', () => {

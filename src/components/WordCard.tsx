@@ -31,7 +31,7 @@ export function WordCard({
           朗读
         </button>
         {!speechAvailable && (
-          <p className="speech-hint">暂无可用英语发音，仍可继续学习。</p>
+          <p className="speech-hint">暂无可用英式发音，仍可继续学习。</p>
         )}
       </div>
 

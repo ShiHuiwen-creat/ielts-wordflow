@@ -170,7 +170,7 @@ async function revealAndRate(rating: '不认识' | '模糊' | '认识') {
 }
 
 describe('StudyPage', () => {
-  it('rechecks speech after subscribing so a voice loaded during setup is not missed', async () => {
+  it('rechecks speech after subscribing so a British voice loaded during setup is not missed', async () => {
     installSpeechDuringSubscription();
     renderStudy(repository());
 
@@ -178,18 +178,18 @@ describe('StudyPage', () => {
     await waitFor(() => expect(speakButton).toBeEnabled());
   });
 
-  it('enables speech when an English voice loads after the study card', async () => {
+  it('enables speech when a British English voice loads after the study card', async () => {
     const speech = installDeferredSpeech();
     renderStudy(repository());
 
     const speakButton = await screen.findByRole('button', { name: '朗读单词 allocate' });
     expect(speakButton).toBeDisabled();
-    expect(screen.getByText('暂无可用英语发音，仍可继续学习。')).toBeVisible();
+    expect(screen.getByText('暂无可用英式发音，仍可继续学习。')).toBeVisible();
 
     act(() => speech.loadVoices([voice('UK English', 'en-GB')]));
 
     await waitFor(() => expect(speakButton).toBeEnabled());
-    expect(screen.queryByText('暂无可用英语发音，仍可继续学习。')).not.toBeInTheDocument();
+    expect(screen.queryByText('暂无可用英式发音，仍可继续学习。')).not.toBeInTheDocument();
   });
 
   it('keeps ratings absent until revealing every answer field', async () => {

@@ -21,7 +21,7 @@ These images were captured from the production build during the release visual Q
 - Reveal-and-rate study sessions with `不认识`, `模糊`, and `认识` feedback.
 - A searchable 300-word library with study-status filters and word details.
 - Daily totals, mastery progress, streaks, and a seven-day activity chart.
-- Optional browser-provided English speech.
+- Optional browser-provided British English speech.
 - Installable PWA behavior, repository-aware direct routes, and offline study after the first successful load.
 - Versioned JSON export and import, plus an explicit progress reset.
 
@@ -33,7 +33,7 @@ Local browser storage is not permanent storage. Clearing site data or browser st
 
 ## Browser support
 
-The browser targets are current stable releases of Chrome, Edge, Firefox, and Safari. JavaScript, IndexedDB, and service workers must be enabled. Automated production acceptance currently runs in Chromium; Firefox and Safari should receive a manual smoke test for a release that changes browser-facing behavior. Install prompts and exact PWA behavior vary by browser and operating system. Speech requires a browser or operating-system English voice; study remains fully usable when no suitable voice is available.
+The browser targets are current stable releases of Chrome, Edge, Firefox, and Safari. JavaScript, IndexedDB, and service workers must be enabled. Automated production acceptance currently runs in Chromium; Firefox and Safari should receive a manual smoke test for a release that changes browser-facing behavior. Install prompts and exact PWA behavior vary by browser and operating system. Speech requires a browser or operating-system voice whose language is reported as British English (`en-GB`); the control stays unavailable when only other English voices are installed, and study remains fully usable without speech.
 
 ## Install and develop
 
