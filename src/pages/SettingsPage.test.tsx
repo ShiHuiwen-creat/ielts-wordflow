@@ -192,6 +192,26 @@ describe('SettingsPage', () => {
     expect(storage.snapshot()).toEqual(before);
   });
 
+  it('rejects a backup containing unknown words before confirmation or replacement', async () => {
+    const storage = repository();
+    const before = storage.snapshot();
+    const unknownBackup = {
+      ...validBackup,
+      progress: [learnedProgress('retired-word')],
+    };
+    renderSettings(storage);
+
+    await screen.findByRole('heading', { name: '设置' });
+    chooseFile(JSON.stringify(unknownBackup));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '备份包含当前词库中不存在的单词：retired-word',
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(storage.replaceAll).not.toHaveBeenCalled();
+    expect(storage.snapshot()).toEqual(before);
+  });
+
   it('validates before showing an import summary and cancel leaves data untouched', async () => {
     const storage = repository();
     const before = storage.snapshot();

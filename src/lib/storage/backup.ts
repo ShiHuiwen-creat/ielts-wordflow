@@ -114,7 +114,10 @@ function hasUniqueKeys<T>(values: T[], key: (value: T) => string): boolean {
   return new Set(values.map(key)).size === values.length;
 }
 
-export function validateBackup(value: unknown): BackupData {
+export function validateBackup(
+  value: unknown,
+  knownVocabularyIds: ReadonlySet<string>,
+): BackupData {
   if (isRecord(value) && typeof value.schemaVersion === 'number' && value.schemaVersion !== 1) {
     throw new Error('不支持的备份版本');
   }
@@ -133,6 +136,13 @@ export function validateBackup(value: unknown): BackupData {
     !hasUniqueKeys(value.dailyStats, (record) => record.date)
   ) {
     throw new Error('备份数据无效');
+  }
+
+  const unknownWordIds = value.progress
+    .map(({ wordId }) => wordId)
+    .filter((wordId) => !knownVocabularyIds.has(wordId));
+  if (unknownWordIds.length > 0) {
+    throw new Error(`备份包含当前词库中不存在的单词：${unknownWordIds.join('、')}`);
   }
 
   return value as unknown as BackupData;
@@ -157,7 +167,8 @@ export async function createBackup(repository: StorageRepository): Promise<Backu
 export async function restoreBackup(
   repository: StorageRepository,
   value: unknown,
+  knownVocabularyIds: ReadonlySet<string>,
 ): Promise<void> {
-  const { settings, progress, dailyStats } = validateBackup(value);
+  const { settings, progress, dailyStats } = validateBackup(value, knownVocabularyIds);
   await repository.replaceAll({ settings, progress, dailyStats });
 }

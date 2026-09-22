@@ -10,7 +10,7 @@ const destinations = [
 
 export function BottomNav() {
   return (
-    <nav className="bottom-nav" aria-label="主导航">
+    <nav className="bottom-nav" id="main-navigation" aria-label="主导航">
       <div className="bottom-nav__inner">
         {destinations.map(({ to, icon, label, ...props }) => (
           <NavLink

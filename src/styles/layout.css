@@ -4,6 +4,25 @@
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }
 
+.skip-link {
+  position: fixed;
+  z-index: 50;
+  top: 0.75rem;
+  left: 0.75rem;
+  min-height: var(--control-min);
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-small);
+  background: var(--color-forest);
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 1rem));
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 .app-header {
   border-bottom: 1px solid rgba(23, 76, 60, 0.22);
 }

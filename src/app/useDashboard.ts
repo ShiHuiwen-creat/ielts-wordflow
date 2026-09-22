@@ -5,6 +5,9 @@ import type { StudyQueueItem } from '../features/study-session/types';
 import type { WordProgress } from '../features/scheduler/types';
 import type { AppSettings } from '../lib/storage/types';
 import { AppContext } from './appContext';
+import { localDateKey, millisecondsUntilNextLocalDay } from './localDate';
+
+const DATE_BOUNDARY_CHECK_INTERVAL = 60_000;
 
 export interface DashboardViewModel {
   settings: AppSettings;
@@ -23,10 +26,6 @@ type DashboardState =
       dashboard: DashboardViewModel;
       source: { progress: readonly WordProgress[]; utcOffsetMinutes: number };
     };
-
-function localDateKey(now: Date, utcOffsetMinutes: number): string {
-  return new Date(now.getTime() + utcOffsetMinutes * 60_000).toISOString().slice(0, 10);
-}
 
 export function useDashboard() {
   const dependencies = useContext(AppContext);
@@ -49,12 +48,14 @@ export function useDashboard() {
           repository.getAllProgress(),
           repository.getAllDailyStats(),
         ]);
+        const vocabularyIds = new Set(vocabulary.map(({ id }) => id));
+        const knownProgress = progress.filter(({ wordId }) => vocabularyIds.has(wordId));
         const offset = utcOffsetMinutes();
         const today = localDateKey(now(), offset);
-        const progressSummary = summarizeProgress(progress, dailyStats, today);
+        const progressSummary = summarizeProgress(knownProgress, dailyStats, today);
         const queue = buildDailyQueue({
           entries: vocabulary,
-          progress,
+          progress: knownProgress,
           today,
           utcOffsetMinutes: offset,
           goal: settings.dailyGoal,
@@ -72,7 +73,7 @@ export function useDashboard() {
               newCount: queue.filter(({ kind }) => kind === 'new').length,
               progressSummary,
             },
-            source: { progress, utcOffsetMinutes: offset },
+            source: { progress: knownProgress, utcOffsetMinutes: offset },
           });
         }
       } catch {
@@ -92,6 +93,52 @@ export function useDashboard() {
   const refreshDashboard = useCallback(() => {
     setRefreshToken((current) => current + 1);
   }, []);
+
+  useEffect(() => {
+    let midnightTimer: number | undefined;
+    let observedDate = localDateKey(now(), utcOffsetMinutes());
+
+    const scheduleMidnightRefresh = () => {
+      if (midnightTimer !== undefined) {
+        window.clearTimeout(midnightTimer);
+      }
+      const current = now();
+      midnightTimer = window.setTimeout(() => {
+        const currentDate = localDateKey(now(), utcOffsetMinutes());
+        if (currentDate !== observedDate) {
+          observedDate = currentDate;
+          refreshDashboard();
+        }
+        scheduleMidnightRefresh();
+      }, Math.min(
+        DATE_BOUNDARY_CHECK_INTERVAL,
+        millisecondsUntilNextLocalDay(current, utcOffsetMinutes()),
+      ));
+    };
+    const refreshAndReschedule = () => {
+      observedDate = localDateKey(now(), utcOffsetMinutes());
+      refreshDashboard();
+      scheduleMidnightRefresh();
+    };
+    const refreshOnFocus = () => refreshAndReschedule();
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        refreshAndReschedule();
+      }
+    };
+
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    scheduleMidnightRefresh();
+
+    return () => {
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      if (midnightTimer !== undefined) {
+        window.clearTimeout(midnightTimer);
+      }
+    };
+  }, [now, refreshDashboard, utcOffsetMinutes]);
 
   const applySettings = useCallback((settings: AppSettings) => {
     setState((current) => {

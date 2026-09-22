@@ -1,12 +1,14 @@
-import { useState, type ChangeEvent } from 'react';
+import { useMemo, useState, type ChangeEvent } from 'react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import type { DailyGoal } from '../features/study-session/types';
+import type { VocabularyEntry } from '../features/vocabulary/types';
 import { createBackup, restoreBackup, validateBackup } from '../lib/storage/backup';
 import type { AppSettings, BackupData, StorageRepository } from '../lib/storage/types';
 
 interface SettingsPageProps {
   settings: AppSettings;
   repository: StorageRepository;
+  vocabulary: readonly VocabularyEntry[];
   onDashboardChanged: (settings?: AppSettings) => void;
 }
 
@@ -24,6 +26,7 @@ function readFile(file: File): Promise<string> {
 export function SettingsPage({
   settings,
   repository,
+  vocabulary,
   onDashboardChanged,
 }: SettingsPageProps) {
   const [localSettings, setLocalSettings] = useState(settings);
@@ -33,6 +36,10 @@ export function SettingsPage({
   const [error, setError] = useState('');
   const [dialogError, setDialogError] = useState('');
   const [status, setStatus] = useState('');
+  const vocabularyIds = useMemo(
+    () => new Set(vocabulary.map(({ id }) => id)),
+    [vocabulary],
+  );
 
   async function persistSettings(nextSettings: AppSettings) {
     const previousSettings = localSettings;
@@ -89,11 +96,12 @@ export function SettingsPage({
     setPendingBackup(null);
     try {
       const parsed: unknown = JSON.parse(await readFile(file));
-      setPendingBackup(validateBackup(parsed));
+      setPendingBackup(validateBackup(parsed, vocabularyIds));
     } catch (cause) {
-      const message = cause instanceof Error && cause.message === '不支持的备份版本'
-        ? cause.message
-        : '备份文件无效，请选择有效的 JSON 备份。';
+      const message = cause instanceof Error && (
+        cause.message === '不支持的备份版本' ||
+        cause.message.startsWith('备份包含当前词库中不存在的单词：')
+      ) ? cause.message : '备份文件无效，请选择有效的 JSON 备份。';
       setError(message);
     }
   }
@@ -107,7 +115,7 @@ export function SettingsPage({
     setError('');
     setDialogError('');
     try {
-      await restoreBackup(repository, pendingBackup);
+      await restoreBackup(repository, pendingBackup, vocabularyIds);
       setLocalSettings(pendingBackup.settings);
       setPendingBackup(null);
       setStatus('数据导入成功');

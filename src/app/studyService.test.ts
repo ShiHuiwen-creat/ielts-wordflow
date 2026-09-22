@@ -57,7 +57,7 @@ describe('createStudyService', () => {
     const service = createStudyService({
       repository: storage,
       initialSession: session,
-      reviewDate: DATE_KEY,
+      utcOffsetMinutes: () => 480,
     });
 
     await expect(service.rateCurrent('known', NOW)).rejects.toThrow('quota exceeded');
@@ -73,7 +73,7 @@ describe('createStudyService', () => {
     const service = createStudyService({
       repository: storage,
       initialSession: initialSession(),
-      reviewDate: DATE_KEY,
+      utcOffsetMinutes: () => 480,
     });
 
     await service.rateCurrent('hard', NOW);
@@ -95,6 +95,22 @@ describe('createStudyService', () => {
     });
   });
 
+  it('calculates the local review date when the rating is submitted after midnight', async () => {
+    const storage = repository(storedProgress());
+    const service = createStudyService({
+      repository: storage,
+      initialSession: initialSession(),
+      utcOffsetMinutes: () => 480,
+    });
+
+    await service.rateCurrent('known', new Date('2026-09-02T16:00:01.000Z'));
+
+    expect(storage.saveReview).toHaveBeenCalledWith(
+      expect.objectContaining({ wordId: 'allocate', lastRating: 'known' }),
+      '2026-09-03',
+    );
+  });
+
   it('schedules an unseen current word without existing progress', async () => {
     const storage = repository(undefined);
     const session: StudySessionState = {
@@ -106,7 +122,7 @@ describe('createStudyService', () => {
     const service = createStudyService({
       repository: storage,
       initialSession: session,
-      reviewDate: DATE_KEY,
+      utcOffsetMinutes: () => 480,
     });
 
     await service.rateCurrent('known', NOW);

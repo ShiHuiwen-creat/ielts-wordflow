@@ -3,6 +3,7 @@ import type { ReviewRating } from '../features/scheduler/types';
 import { sessionReducer } from '../features/study-session/sessionReducer';
 import type { StudySessionState } from '../features/study-session/types';
 import type { StorageRepository } from '../lib/storage/types';
+import { localDateKey } from './localDate';
 
 export interface StudyService {
   getState(): StudySessionState;
@@ -13,13 +14,13 @@ export interface StudyService {
 interface CreateStudyServiceInput {
   repository: StorageRepository;
   initialSession: StudySessionState;
-  reviewDate: string;
+  utcOffsetMinutes: () => number;
 }
 
 export function createStudyService({
   repository,
   initialSession,
-  reviewDate,
+  utcOffsetMinutes,
 }: CreateStudyServiceInput): StudyService {
   let state = initialSession;
 
@@ -42,7 +43,10 @@ export function createStudyService({
       const progress = await repository.getProgress(current.wordId);
       const scheduled = scheduleReview(progress, rating, reviewedAt, current.wordId);
 
-      await repository.saveReview(scheduled, reviewDate);
+      await repository.saveReview(
+        scheduled,
+        localDateKey(reviewedAt, utcOffsetMinutes()),
+      );
       state = sessionReducer(state, { type: 'rated', rating });
 
       return state;

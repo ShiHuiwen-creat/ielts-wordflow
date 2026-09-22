@@ -50,10 +50,11 @@ export function AppRouter() {
           path="/study"
           element={(
             <StudyPage
+              key={state.dashboard.today}
               queue={state.dashboard.queue}
               vocabulary={dependencies.vocabulary}
               repository={dependencies.repository}
-              reviewDate={state.dashboard.today}
+              utcOffsetMinutes={dependencies.utcOffsetMinutes}
               autoSpeak={state.dashboard.settings.autoSpeak}
               now={dependencies.now}
               onReviewSaved={refreshDashboard}
@@ -99,6 +100,7 @@ export function AppRouter() {
               }}
               repository={dependencies.repository}
               settings={state.dashboard.settings}
+              vocabulary={dependencies.vocabulary}
             />
           )}
         />

@@ -97,6 +97,7 @@ describe('TodayPage', () => {
       progress: [
         progress('allocate', '2026-09-02T07:00:00.000Z'),
         progress('coherent', '2026-09-04T07:00:00.000Z', true),
+        progress('retired-word', '2026-09-04T07:00:00.000Z', true),
       ],
       dailyStats: [
         stats('2026-08-31', 1, 0),

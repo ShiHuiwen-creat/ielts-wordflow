@@ -18,7 +18,7 @@ interface StudyPageProps {
   queue: readonly StudyQueueItem[];
   vocabulary: readonly VocabularyEntry[];
   repository: StorageRepository;
-  reviewDate: string;
+  utcOffsetMinutes: () => number;
   autoSpeak: boolean;
   now: () => Date;
   onReviewSaved: () => void;
@@ -35,25 +35,35 @@ function startSession(queue: readonly StudyQueueItem[]): StudySessionState {
   };
 }
 
+function hasSameQueue(
+  left: readonly StudyQueueItem[],
+  right: readonly StudyQueueItem[],
+): boolean {
+  return left.length === right.length && left.every((item, index) => (
+    item.wordId === right[index]?.wordId && item.kind === right[index]?.kind
+  ));
+}
+
 export function StudyPage({
   queue,
   vocabulary,
   repository,
-  reviewDate,
+  utcOffsetMinutes,
   autoSpeak,
   now,
   onReviewSaved,
 }: StudyPageProps) {
-  const [service] = useState(() => createStudyService({
+  const [service, setService] = useState(() => createStudyService({
     repository,
     initialSession: startSession(queue),
-    reviewDate,
+    utcOffsetMinutes,
   }));
   const [session, setSession] = useState(service.getState());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [speechAvailable, setSpeechAvailable] = useState(canSpeak);
   const busyRef = useRef(false);
+  const hasRatedRef = useRef(false);
   const vocabularyById = new Map(vocabulary.map((entry) => [entry.id, entry]));
   const entry = session.current === undefined
     ? undefined
@@ -63,6 +73,21 @@ export function StudyPage({
     () => subscribeToSpeechAvailability(setSpeechAvailable),
     [],
   );
+
+  useEffect(() => {
+    if (hasRatedRef.current || hasSameQueue(service.getState().queue, queue)) {
+      return;
+    }
+
+    const nextService = createStudyService({
+      repository,
+      initialSession: startSession(queue),
+      utcOffsetMinutes,
+    });
+    setService(nextService);
+    setSession(nextService.getState());
+    setError(null);
+  }, [queue, repository, service, utcOffsetMinutes]);
 
   useEffect(() => {
     if (autoSpeak && speechAvailable && entry !== undefined) {
@@ -101,6 +126,7 @@ export function StudyPage({
 
     try {
       const nextSession = await service.rateCurrent(rating, now());
+      hasRatedRef.current = true;
       setSession(nextSession);
       onReviewSaved();
     } catch {

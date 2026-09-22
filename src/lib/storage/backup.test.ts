@@ -8,6 +8,12 @@ import { createRepository } from './repository';
 import type { StorageRepository } from './types';
 
 const databaseNames = new Set<string>();
+const knownVocabularyIds = new Set([
+  'allocate',
+  'Academic_Word',
+  'replacement',
+  'trigger-failure',
+]);
 
 function databaseName(label: string): string {
   const name = `backup-${label}-${crypto.randomUUID()}`;
@@ -49,11 +55,33 @@ afterEach(async () => {
 });
 
 describe('storage backup', () => {
+  it('rejects progress for unknown vocabulary before replacing existing data', async () => {
+    const repository = createRepository(databaseName('unknown-word'));
+    await repository.saveReview(progress(), '2026-09-02');
+    const before = await createBackup(repository);
+    const unknown = {
+      ...before,
+      progress: [progress({ wordId: 'retired-word' })],
+    };
+    expect(() => validateBackup(unknown, knownVocabularyIds)).toThrow(
+      '备份包含当前词库中不存在的单词：retired-word',
+    );
+    await expect(restoreBackup(repository, unknown, knownVocabularyIds)).rejects.toThrow(
+      '备份包含当前词库中不存在的单词：retired-word',
+    );
+    await expect(createBackup(repository)).resolves.toMatchObject({
+      settings: before.settings,
+      progress: before.progress,
+      dailyStats: before.dailyStats,
+    });
+    repository.close();
+  });
+
   it('rejects an unsupported backup without changing stored data', async () => {
     const repository = createRepository(databaseName('unsupported'));
     await repository.saveReview(progress(), '2026-09-02');
 
-    await expect(restoreBackup(repository, { schemaVersion: 99 })).rejects.toThrow(
+    await expect(restoreBackup(repository, { schemaVersion: 99 }, knownVocabularyIds)).rejects.toThrow(
       '不支持的备份版本',
     );
     await expect(repository.getProgress('allocate')).resolves.toEqual(progress());
@@ -69,8 +97,8 @@ describe('storage backup', () => {
       progress: [{ ...before.progress[0], dueAt: 'tomorrow' }],
     };
 
-    expect(() => validateBackup(malformed)).toThrow('备份数据无效');
-    await expect(restoreBackup(repository, malformed)).rejects.toThrow('备份数据无效');
+    expect(() => validateBackup(malformed, knownVocabularyIds)).toThrow('备份数据无效');
+    await expect(restoreBackup(repository, malformed, knownVocabularyIds)).rejects.toThrow('备份数据无效');
     const after = await createBackup(repository);
     expect(after).toMatchObject({
       settings: before.settings,
@@ -82,13 +110,16 @@ describe('storage backup', () => {
 
   it('rejects parseable strings that are not ISO 8601 timestamps', () => {
     expect(() =>
-      validateBackup({
-        schemaVersion: 1,
-        exportedAt: '2026',
-        settings: { dailyGoal: 20, autoSpeak: false, onboardingComplete: false },
-        progress: [],
-        dailyStats: [],
-      }),
+      validateBackup(
+        {
+          schemaVersion: 1,
+          exportedAt: '2026',
+          settings: { dailyGoal: 20, autoSpeak: false, onboardingComplete: false },
+          progress: [],
+          dailyStats: [],
+        },
+        knownVocabularyIds,
+      ),
     ).toThrow('备份数据无效');
   });
 
@@ -106,7 +137,7 @@ describe('storage backup', () => {
         dailyStats: [],
       };
 
-      expect(() => validateBackup(backup)).toThrow('备份数据无效');
+      expect(() => validateBackup(backup, knownVocabularyIds)).toThrow('备份数据无效');
     },
   );
 
@@ -116,7 +147,7 @@ describe('storage backup', () => {
     const domainProgress = progress({ wordId: 'Academic_Word', stage: 7 });
     await source.saveReview(domainProgress, '2026-09-02');
 
-    await restoreBackup(destination, await createBackup(source));
+    await restoreBackup(destination, await createBackup(source), knownVocabularyIds);
 
     await expect(destination.getProgress('Academic_Word')).resolves.toEqual(domainProgress);
     source.close();
@@ -125,13 +156,16 @@ describe('storage backup', () => {
 
   it.each(['', '   '])('rejects invalid vocabulary ID %j', (wordId) => {
     expect(() =>
-      validateBackup({
-        schemaVersion: 1,
-        exportedAt: '2026-09-03T08:00:00.000Z',
-        settings: { dailyGoal: 20, autoSpeak: false, onboardingComplete: false },
-        progress: [progress({ wordId })],
-        dailyStats: [],
-      }),
+      validateBackup(
+        {
+          schemaVersion: 1,
+          exportedAt: '2026-09-03T08:00:00.000Z',
+          settings: { dailyGoal: 20, autoSpeak: false, onboardingComplete: false },
+          progress: [progress({ wordId })],
+          dailyStats: [],
+        },
+        knownVocabularyIds,
+      ),
     ).toThrow('备份数据无效');
   });
 
@@ -165,7 +199,7 @@ describe('storage backup', () => {
                   dailyStats: [{ ...replacement.dailyStats[0], extra: true }],
                 };
 
-      await expect(restoreBackup(repository, unexpected)).rejects.toThrow('备份数据无效');
+      await expect(restoreBackup(repository, unexpected, knownVocabularyIds)).rejects.toThrow('备份数据无效');
       const after = await createBackup(repository);
       expect(after).toMatchObject({
         settings: before.settings,
@@ -182,7 +216,7 @@ describe('storage backup', () => {
     await populate(populatedRepository);
 
     const backup = await createBackup(populatedRepository);
-    await restoreBackup(emptyRepository, backup);
+    await restoreBackup(emptyRepository, backup, knownVocabularyIds);
 
     await expect(createBackup(emptyRepository)).resolves.toMatchObject({
       schemaVersion: 1,
@@ -214,7 +248,7 @@ describe('storage backup', () => {
       ],
     };
 
-    await expect(restoreBackup(repository, replacement)).rejects.toThrow('restore write failed');
+    await expect(restoreBackup(repository, replacement, knownVocabularyIds)).rejects.toThrow('restore write failed');
     const after = await createBackup(repository);
     expect(after).toMatchObject({
       settings: before.settings,
@@ -232,7 +266,7 @@ describe('storage backup', () => {
       progress: [progress(), progress({ stage: 2 })],
     };
 
-    await expect(restoreBackup(repository, duplicated)).rejects.toThrow('备份数据无效');
+    await expect(restoreBackup(repository, duplicated, knownVocabularyIds)).rejects.toThrow('备份数据无效');
     repository.close();
   });
 });
