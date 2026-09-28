@@ -2,6 +2,8 @@
 
 [English](README.md)
 
+**在线使用：** [https://shihuiwen-creat.github.io/ielts-wordflow/](https://shihuiwen-creat.github.io/ielts-wordflow/)
+
 IELTS WordFlow 是一款面向雅思 6–6.5 分学习者的中文离线优先词汇工具。应用内置 300 个独立编写的单词与例句，提供间隔复习队列、本地学习记录以及 JSON 备份和恢复功能。
 
 ## 截图

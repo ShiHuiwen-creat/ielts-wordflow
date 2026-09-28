@@ -2,6 +2,8 @@
 
 [简体中文](README.zh-CN.md)
 
+**Live app:** [https://shihuiwen-creat.github.io/ielts-wordflow/](https://shihuiwen-creat.github.io/ielts-wordflow/)
+
 IELTS WordFlow is an offline-first, Chinese-language vocabulary study app for learners targeting IELTS band 6–6.5. It ships with 300 independently authored words and examples, a spaced-review queue, local progress tracking, and JSON backup and restore.
 
 ## Screenshots
