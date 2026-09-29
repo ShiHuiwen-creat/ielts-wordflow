@@ -33,6 +33,10 @@ IELTS WordFlow has no account system, analytics, advertising, or telemetry. Sett
 
 Local browser storage is not permanent storage. Clearing site data or browser storage, using an ephemeral/private profile, resetting the browser, or losing the device can delete all learning progress. Export a backup from **Settings → Export data** regularly and keep it somewhere safe. Importing a backup replaces the current local study data only after confirmation.
 
+## Study resources
+
+[`resources/candidate-notes/`](resources/candidate-notes/) contains personal study notes and publicly distributable materials organized by vocabulary, listening, reading, writing, and speaking. These files are not bundled into the web app. Review the provenance, privacy, and licensing notes in that directory before reuse or redistribution.
+
 ## Browser support
 
 The browser targets are current stable releases of Chrome, Edge, Firefox, and Safari. JavaScript, IndexedDB, and service workers must be enabled. Automated production acceptance currently runs in Chromium; Firefox and Safari should receive a manual smoke test for a release that changes browser-facing behavior. Install prompts and exact PWA behavior vary by browser and operating system. Speech requires a browser or operating-system voice whose language is reported as British English (`en-GB`); the control stays unavailable when only other English voices are installed, and study remains fully usable without speech.
