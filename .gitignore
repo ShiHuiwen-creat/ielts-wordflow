@@ -5,3 +5,7 @@ dist/
 playwright-report/
 test-results/
 .DS_Store
+.venv-asr/
+downloads/
+note-work/
+utf8_test_转写.txt
